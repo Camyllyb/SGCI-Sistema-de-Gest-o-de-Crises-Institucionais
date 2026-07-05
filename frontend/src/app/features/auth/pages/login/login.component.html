@@ -1,0 +1,37 @@
+<div class="login">
+  <form class="login__card" (ngSubmit)="onSubmit()">
+    <h1 class="login__title">Sistema de Gerenciamento de Crises Institucionais</h1>
+
+    <label class="login__label" for="email">Email</label>
+    <input
+      class="login__input"
+      id="email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      [ngModel]="email()"
+      (ngModelChange)="email.set($event)"
+      required
+    />
+
+    <label class="login__label" for="password">Senha</label>
+    <input
+      class="login__input"
+      id="password"
+      name="password"
+      type="password"
+      autocomplete="current-password"
+      [ngModel]="password()"
+      (ngModelChange)="password.set($event)"
+      required
+    />
+
+    @if (errorMessage()) {
+      <p class="login__error">{{ errorMessage() }}</p>
+    }
+
+    <button class="login__button" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Entrando...' : 'Entrar' }}
+    </button>
+  </form>
+</div>
