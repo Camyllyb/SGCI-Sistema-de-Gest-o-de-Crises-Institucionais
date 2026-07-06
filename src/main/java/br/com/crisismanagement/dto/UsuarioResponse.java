@@ -13,6 +13,7 @@ public record UsuarioResponse(
         PerfilUsuario perfil,
         Long departamentoId,
         boolean active,
+        boolean mustChangePassword,
         LocalDateTime createdAt) {
 
     public static UsuarioResponse from(User user) {
@@ -23,6 +24,7 @@ public record UsuarioResponse(
                 user.perfil,
                 user.departamentoId,
                 user.active,
+                user.mustChangePassword,
                 user.createdAt);
     }
 }

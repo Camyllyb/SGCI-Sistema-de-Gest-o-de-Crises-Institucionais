@@ -5,4 +5,5 @@ export interface User {
   name: string;
   email: string;
   perfil: Perfil;
+  mustChangePassword: boolean;
 }

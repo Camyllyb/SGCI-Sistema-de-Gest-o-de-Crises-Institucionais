@@ -58,4 +58,12 @@ public class UsuarioController {
         usuarioService.deactivate(id);
         return Response.noContent().build();
     }
+
+    @POST
+    @Path("/{id}/reset-senha")
+    @Consumes(MediaType.WILDCARD)
+    public Response resetSenha(@PathParam("id") Long id) {
+        usuarioService.resetPassword(id);
+        return Response.noContent().build();
+    }
 }

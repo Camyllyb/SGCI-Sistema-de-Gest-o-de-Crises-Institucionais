@@ -1,5 +1,6 @@
 package br.com.crisismanagement.controllers;
 
+import br.com.crisismanagement.dto.ChangePasswordRequest;
 import br.com.crisismanagement.dto.LoginRequest;
 import br.com.crisismanagement.dto.LoginResponse;
 import br.com.crisismanagement.dto.UserResponse;
@@ -8,6 +9,7 @@ import br.com.crisismanagement.services.AuthService;
 import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -31,8 +33,20 @@ public class AuthController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(LoginRequest request) {
-        String token = authService.login(request.email(), request.password());
-        return Response.ok(new LoginResponse(true, "Login realizado com sucesso"))
+        AuthService.LoginResult result = authService.login(request.email(), request.password());
+        return Response.ok(new LoginResponse(true, "Login realizado com sucesso", result.mustChangePassword()))
+                .cookie(authCookieFactory.buildLoginCookie(result.token(), AuthService.TOKEN_EXPIRATION_SECONDS))
+                .build();
+    }
+
+    @POST
+    @Path("/change-password")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response changePassword(@Valid ChangePasswordRequest request) {
+        String token = authService.changePassword(request.currentPassword(), request.newPassword());
+        return Response.ok(new LoginResponse(true, "Senha alterada com sucesso", false))
                 .cookie(authCookieFactory.buildLoginCookie(token, AuthService.TOKEN_EXPIRATION_SECONDS))
                 .build();
     }
@@ -42,7 +56,7 @@ public class AuthController {
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     public Response logout() {
-        return Response.ok(new LoginResponse(false, "Logout realizado com sucesso"))
+        return Response.ok(new LoginResponse(false, "Logout realizado com sucesso", false))
                 .cookie(authCookieFactory.buildLogoutCookie())
                 .build();
     }

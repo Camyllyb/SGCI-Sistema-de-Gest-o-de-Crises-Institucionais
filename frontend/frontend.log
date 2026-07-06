@@ -1,0 +1,40 @@
+
+> frontend@0.0.0 start
+> ng serve
+
+Prebundling has been configured but will not be used because caching has been disabled.
+❯ Building...
+✔ Building...
+Initial chunk files | Names                       |  Raw size
+chunk-NZDMSMUM.js   | -                           |   1.36 MB | 
+chunk-I6DVU6QA.js   | -                           | 274.12 kB | 
+polyfills.js        | polyfills                   |  89.77 kB | 
+styles.css          | styles                      |  15.36 kB | 
+main.js             | main                        |   8.30 kB | 
+chunk-RL7RZFJ2.js   | -                           |   1.70 kB | 
+
+                    | Initial total               |   1.75 MB
+
+Lazy chunk files    | Names                       |  Raw size
+chunk-DLSYLMUG.js   | -                           | 231.88 kB | 
+chunk-K57DV75N.js   | main-layout-component       |  44.82 kB | 
+chunk-VMZWQ2OO.js   | crise-form-component        |  26.15 kB | 
+chunk-ZEMQXUDE.js   | auditoria-list-component    |  25.98 kB | 
+chunk-2SE6QGFP.js   | login-component             |  24.58 kB | 
+chunk-2SM5VVGX.js   | crise-detail-component      |  22.84 kB | 
+chunk-CERZCI4U.js   | relatorio-form-component    |  20.57 kB | 
+chunk-C4WSCBGQ.js   | usuario-form-component      |  19.52 kB | 
+chunk-C6PCIHXL.js   | cenario-form-component      |  17.61 kB | 
+chunk-KD7TXLRU.js   | change-password-component   |  15.45 kB | 
+chunk-ZCTJWB5X.js   | dashboard-component         |  14.66 kB | 
+chunk-5BX4XFNZ.js   | usuario-list-component      |  14.18 kB | 
+chunk-LXSJRNKK.js   | campus-form-component       |  12.74 kB | 
+chunk-ISYPQIAM.js   | cenario-list-component      |  12.42 kB | 
+chunk-WBFLL7AR.js   | departamento-form-component |  11.94 kB | 
+...and 16 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [28.519 seconds] - 2026-07-06T19:34:38.520Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/

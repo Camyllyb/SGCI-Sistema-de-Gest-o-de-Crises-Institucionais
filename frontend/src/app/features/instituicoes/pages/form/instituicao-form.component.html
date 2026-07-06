@@ -1,0 +1,32 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>{{ id() ? 'Editar Instituição' : 'Nova Instituição' }}</h1>
+      <span class="page__subtitle">Preencha os dados da instituição</span>
+    </div>
+  </header>
+  @if (error(); as errorMessage) { <p class="alert alert--error">{{ errorMessage }}</p> }
+  @if (loading()) { <p class="state">Carregando...</p> } @else {
+    <form #entityForm="ngForm" (ngSubmit)="onSubmit()">
+      <div class="card-panel form-section">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="nome">Nome *</label>
+            <input class="form-control" id="nome" name="nome" type="text" required [(ngModel)]="model.nome" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="sigla">Sigla *</label>
+            <input class="form-control" id="sigla" name="sigla" type="text" required [(ngModel)]="model.sigla" />
+          </div>
+        </div>
+        <div class="form__actions">
+          <button class="btn-primary" type="submit" [disabled]="entityForm.invalid || saving()">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+            <span>{{ saving() ? 'Salvando...' : 'Salvar' }}</span>
+          </button>
+          <a class="btn btn--secondary" routerLink="/instituicoes">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  }
+</section>

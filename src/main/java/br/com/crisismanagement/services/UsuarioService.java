@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jboss.logging.Logger;
 
 import br.com.crisismanagement.dto.UsuarioRequest;
 import br.com.crisismanagement.dto.UsuarioResponse;
@@ -24,11 +25,16 @@ import jakarta.ws.rs.NotFoundException;
 @ApplicationScoped
 public class UsuarioService {
 
+    private static final Logger LOG = Logger.getLogger(UsuarioService.class);
+
     @Inject
     UserRepository userRepository;
 
     @Inject
     JsonWebToken jsonWebToken;
+
+    @Inject
+    EmailService emailService;
 
     public List<UsuarioResponse> listAll() {
         return userRepository.listAllOrdered().stream()
@@ -42,9 +48,6 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponse create(UsuarioRequest request) {
-        if (request.password() == null || request.password().isBlank()) {
-            throw new BadRequestException("A senha é obrigatória na criação do usuário.");
-        }
         userRepository.findByEmail(request.email()).ifPresent(u -> {
             throw new BadRequestException("Já existe um usuário com este e-mail.");
         });
@@ -52,13 +55,42 @@ public class UsuarioService {
         User user = new User();
         user.name = request.name();
         user.email = request.email();
-        user.password = BcryptUtil.bcryptHash(request.password());
         user.perfil = request.perfil();
         user.departamentoId = request.departamentoId();
         user.active = request.active() == null || request.active();
         user.createdAt = LocalDateTime.now();
+
+        // Se o admin não informar senha, gera uma temporária e envia por e-mail;
+        // o usuário será forçado a trocá-la no primeiro login.
+        boolean senhaInformada = request.password() != null && !request.password().isBlank();
+        String senhaTemporaria = senhaInformada ? request.password() : PasswordGenerator.generate();
+        user.password = BcryptUtil.bcryptHash(senhaTemporaria);
+        user.mustChangePassword = !senhaInformada;
+
         userRepository.persist(user);
+
+        if (!senhaInformada) {
+            // O envio não deve derrubar a criação da conta: se o SMTP falhar, o
+            // usuário fica registrado e o admin pode reenviar via "Reset senha".
+            try {
+                emailService.enviarSenhaTemporaria(user.name, user.email, senhaTemporaria);
+            } catch (RuntimeException e) {
+                LOG.errorf(e, "Usuário %s criado, mas o envio da senha temporária por e-mail falhou. "
+                        + "Verifique a configuração de SMTP (MAIL_*) e use 'Reset senha' para reenviar.",
+                        user.email);
+            }
+        }
         return UsuarioResponse.from(user);
+    }
+
+    /** Gera uma nova senha temporária, força troca no próximo login e reenvia por e-mail. */
+    @Transactional
+    public void resetPassword(Long id) {
+        User user = getOrThrow(id);
+        String senhaTemporaria = PasswordGenerator.generate();
+        user.password = BcryptUtil.bcryptHash(senhaTemporaria);
+        user.mustChangePassword = true;
+        emailService.enviarSenhaTemporaria(user.name, user.email, senhaTemporaria);
     }
 
     @Transactional
@@ -80,6 +112,7 @@ public class UsuarioService {
         }
         if (request.password() != null && !request.password().isBlank()) {
             user.password = BcryptUtil.bcryptHash(request.password());
+            user.mustChangePassword = false;
         }
         return UsuarioResponse.from(user);
     }

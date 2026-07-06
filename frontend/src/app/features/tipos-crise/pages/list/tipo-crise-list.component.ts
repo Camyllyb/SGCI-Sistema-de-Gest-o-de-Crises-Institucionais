@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TipoCrise } from '../../models/tipo-crise.model';
 import { TipoCriseService } from '../../services/tipo-crise.service';
@@ -6,7 +7,7 @@ import { TipoCriseService } from '../../services/tipo-crise.service';
 @Component({
   selector: 'app-tipo-crise-list',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './tipo-crise-list.component.html',
   styleUrl: './tipo-crise-list.component.scss',
 })
@@ -33,6 +34,16 @@ export class TipoCriseListComponent implements OnInit {
         this.error.set('Não foi possível carregar os tipos de crise.');
         this.loading.set(false);
       },
+    });
+  }
+
+  remove(tipo: TipoCrise): void {
+    if (!confirm(`Excluir o tipo de crise "${tipo.nome}"?`)) {
+      return;
+    }
+    this.tipoCriseService.deactivate(tipo.id).subscribe({
+      next: () => this.load(),
+      error: () => this.error.set('Não foi possível excluir o tipo de crise.'),
     });
   }
 }

@@ -1,0 +1,58 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>{{ id() ? 'Editar Departamento' : 'Novo Departamento' }}</h1>
+      <span class="page__subtitle">Preencha os dados do departamento</span>
+    </div>
+  </header>
+
+  @if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  }
+
+  @if (loading()) {
+    <p class="state">Carregando...</p>
+  } @else {
+    <form #entityForm="ngForm" (ngSubmit)="onSubmit()">
+      <div class="card-panel form-section">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="nome">Nome *</label>
+            <input
+              class="form-control"
+              id="nome"
+              name="nome"
+              type="text"
+              placeholder="Ex.: Tecnologia da Informação"
+              required
+              [(ngModel)]="model.nome"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="sigla">Sigla *</label>
+            <input
+              class="form-control"
+              id="sigla"
+              name="sigla"
+              type="text"
+              placeholder="Ex.: TI"
+              required
+              [(ngModel)]="model.sigla"
+            />
+          </div>
+        </div>
+
+        <div class="form__actions">
+          <button class="btn-primary" type="submit" [disabled]="entityForm.invalid || saving()">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            <span>{{ saving() ? 'Salvando...' : 'Salvar' }}</span>
+          </button>
+          <a class="btn btn--secondary" routerLink="/departamentos">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  }
+</section>

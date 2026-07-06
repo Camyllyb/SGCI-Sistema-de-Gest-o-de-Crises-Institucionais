@@ -1,0 +1,59 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>{{ id() ? 'Editar Cenário de Crise' : 'Novo Cenário de Crise' }}</h1>
+      <span class="page__subtitle">Modelo de crise pré-definido</span>
+    </div>
+  </header>
+  @if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  }
+  @if (loading()) {
+    <p class="state">Carregando...</p>
+  } @else {
+    <form #entityForm="ngForm" (ngSubmit)="onSubmit()">
+      <div class="card-panel form-section">
+        <div class="form-group">
+          <label class="form-label" for="descricao">Descrição *</label>
+          <textarea class="form-control" id="descricao" name="descricao" required [(ngModel)]="model.descricao"></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="nivelSugerido">Nível Sugerido</label>
+            <select class="form-control" id="nivelSugerido" name="nivelSugerido" [(ngModel)]="model.nivelSugerido">
+              <option [ngValue]="null">Nenhum</option>
+              @for (nivel of niveis; track nivel) {
+                <option [ngValue]="nivel">{{ nivel }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tipoCriseId">Tipo de Crise *</label>
+            <select class="form-control" id="tipoCriseId" name="tipoCriseId" required [(ngModel)]="model.tipoCriseId">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              @for (tipo of tipos(); track tipo.id) {
+                <option [ngValue]="tipo.id">{{ tipo.nome }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="departamentoId">Departamento *</label>
+            <select class="form-control" id="departamentoId" name="departamentoId" required [(ngModel)]="model.departamentoId">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              @for (dep of departamentos(); track dep.id) {
+                <option [ngValue]="dep.id">{{ dep.nome }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form__actions">
+          <button class="btn-primary" type="submit" [disabled]="entityForm.invalid || saving()">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+            <span>{{ saving() ? 'Salvando...' : 'Salvar' }}</span>
+          </button>
+          <a class="btn btn--secondary" routerLink="/cenarios">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  }
+</section>

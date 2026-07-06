@@ -1,0 +1,78 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>Usuários</h1>
+      <span class="page__subtitle">Gerenciamento de contas e perfis de acesso</span>
+    </div>
+    <div class="page__actions">
+      <a class="btn btn--primary" routerLink="/usuarios/novo">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
+        <span>Novo</span>
+      </a>
+    </div>
+  </header>
+
+  @if (notice(); as noticeMessage) {
+    <p class="alert alert--success">{{ noticeMessage }}</p>
+  }
+
+  @if (loading()) {
+    <p class="state">Carregando...</p>
+  } @else if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Perfil</th>
+          <th>Departamento</th>
+          <th>Status</th>
+          <th class="cell-actions">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (usuario of usuarios(); track usuario.id) {
+          <tr>
+            <td class="cell-id">#{{ usuario.id }}</td>
+            <td>{{ usuario.name }}</td>
+            <td class="muted">{{ usuario.email }}</td>
+            <td>
+              <span class="role-chip" [class.role-chip--admin]="usuario.perfil === 'ADMIN'">{{
+                usuario.perfil
+              }}</span>
+            </td>
+            <td class="muted">{{ departamentoNome(usuario.departamentoId) }}</td>
+            <td>
+              <span [class]="usuario.active ? 'badge badge--success' : 'badge badge--neutral'">{{
+                usuario.active ? 'Ativo' : 'Inativo'
+              }}</span>
+            </td>
+            <td class="cell-actions">
+              <a class="btn btn--ghost btn--sm" [routerLink]="['/usuarios', usuario.id, 'editar']">Editar</a>
+              <button class="btn btn--ghost btn--sm" type="button" (click)="resetSenha(usuario)">
+                Reset senha
+              </button>
+              <button
+                class="btn btn--ghost btn--sm btn--danger-ghost"
+                type="button"
+                (click)="remove(usuario)"
+              >
+                Excluir
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty">Nenhum usuário cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

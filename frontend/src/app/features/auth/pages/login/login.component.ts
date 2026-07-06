@@ -28,7 +28,7 @@ export class LoginComponent {
       next: (response) => {
         this.loading.set(false);
         if (response.authenticated) {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate([response.mustChangePassword ? '/trocar-senha' : '/dashboard']);
         } else {
           this.errorMessage.set(response.message);
         }

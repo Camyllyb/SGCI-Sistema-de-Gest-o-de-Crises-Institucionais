@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { Instituicao } from '../../models/instituicao.model';
 import { InstituicaoService } from '../../services/instituicao.service';
@@ -6,7 +7,7 @@ import { InstituicaoService } from '../../services/instituicao.service';
 @Component({
   selector: 'app-instituicao-list',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './instituicao-list.component.html',
 })
 export class InstituicaoListComponent implements OnInit {
@@ -32,6 +33,16 @@ export class InstituicaoListComponent implements OnInit {
         this.error.set('Não foi possível carregar as instituições.');
         this.loading.set(false);
       },
+    });
+  }
+
+  remove(item: Instituicao): void {
+    if (!confirm(`Excluir a instituição "${item.nome}"?`)) {
+      return;
+    }
+    this.instituicaoService.deactivate(item.id).subscribe({
+      next: () => this.load(),
+      error: () => this.error.set('Não foi possível excluir a instituição.'),
     });
   }
 }

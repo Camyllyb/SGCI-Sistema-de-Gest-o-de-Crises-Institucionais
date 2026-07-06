@@ -1,4 +1,4 @@
 package br.com.crisismanagement.dto;
 
-public record LoginResponse(boolean authenticated, String message) {
+public record LoginResponse(boolean authenticated, String message, boolean mustChangePassword) {
 }

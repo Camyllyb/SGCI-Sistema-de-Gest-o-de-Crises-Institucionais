@@ -1,0 +1,105 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>{{ id() ? 'Editar Usuário' : 'Novo Usuário' }}</h1>
+      <span class="page__subtitle">
+        {{
+          id()
+            ? 'Atualize os dados e o perfil de acesso'
+            : 'Uma senha temporária será gerada e enviada por e-mail'
+        }}
+      </span>
+    </div>
+  </header>
+
+  @if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  }
+
+  @if (loading()) {
+    <p class="state">Carregando...</p>
+  } @else {
+    <form #entityForm="ngForm" (ngSubmit)="onSubmit()">
+      <div class="card-panel form-section">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="name">Nome *</label>
+            <input
+              class="form-control"
+              id="name"
+              name="name"
+              type="text"
+              placeholder="Nome completo"
+              required
+              [(ngModel)]="model.name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">E-mail *</label>
+            <input
+              class="form-control"
+              id="email"
+              name="email"
+              type="email"
+              placeholder="usuario@instituicao.edu.br"
+              required
+              [(ngModel)]="model.email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="perfil">Perfil *</label>
+            <select class="form-control" id="perfil" name="perfil" required [(ngModel)]="model.perfil">
+              @for (perfil of perfis; track perfil) {
+                <option [ngValue]="perfil">{{ perfil }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="departamentoId">Departamento</label>
+            <select
+              class="form-control"
+              id="departamentoId"
+              name="departamentoId"
+              [(ngModel)]="model.departamentoId"
+            >
+              <option [ngValue]="null">Nenhum</option>
+              @for (dep of departamentos(); track dep.id) {
+                <option [ngValue]="dep.id">{{ dep.nome }}</option>
+              }
+            </select>
+          </div>
+
+          @if (id()) {
+            <div class="form-group form-group--full">
+              <label class="form-label" for="active">Status</label>
+              <select class="form-control" id="active" name="active" [(ngModel)]="model.active">
+                <option [ngValue]="true">Ativo</option>
+                <option [ngValue]="false">Inativo</option>
+              </select>
+            </div>
+          }
+        </div>
+
+        @if (!id()) {
+          <p class="alert alert--success">
+            Ao salvar, o sistema envia uma senha temporária para o e-mail informado. O usuário deverá
+            defini-la no primeiro acesso.
+          </p>
+        }
+
+        <div class="form__actions">
+          <button class="btn-primary" type="submit" [disabled]="entityForm.invalid || saving()">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            <span>{{ saving() ? 'Salvando...' : 'Salvar' }}</span>
+          </button>
+          <a class="btn btn--secondary" routerLink="/usuarios">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  }
+</section>

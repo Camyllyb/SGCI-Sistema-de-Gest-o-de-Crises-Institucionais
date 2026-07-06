@@ -9,7 +9,7 @@ export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   return authService.fetchCurrentUser().pipe(
-    map(() => true),
+    map((user) => (user.mustChangePassword ? router.parseUrl('/trocar-senha') : true)),
     catchError(() => of(router.parseUrl('/login'))),
   );
 };

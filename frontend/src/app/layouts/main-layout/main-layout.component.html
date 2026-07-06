@@ -1,5 +1,6 @@
-<div class="layout">
-  <aside class="sidebar">
+<div class="layout" [class.layout--collapsed]="collapsed()" [class.layout--mobile-open]="mobileOpen()">
+  <div class="layout__overlay" (click)="closeMobile()"></div>
+  <aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
     <div class="sidebar__brand">
       <span class="sidebar__logo" aria-hidden="true">
         <svg class="icon" viewBox="0 0 24 24">
@@ -17,7 +18,7 @@
     <nav class="sidebar__nav" aria-label="Navegação principal">
       <p class="sidebar__group-label">Principal</p>
 
-      <a routerLink="/dashboard" routerLinkActive="active" class="sidebar__link">
+      <a routerLink="/dashboard" routerLinkActive="active" class="sidebar__link" title="Painel">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="3" width="7" height="9" rx="1" />
           <rect x="14" y="3" width="7" height="5" rx="1" />
@@ -31,6 +32,7 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="sidebar__link"
+        title="Crises"
       >
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
@@ -39,14 +41,14 @@
         </svg>
         <span>Crises</span>
       </a>
-      <a *appRole="['ADMIN']" routerLink="/crises/nova" routerLinkActive="active" class="sidebar__link">
+      <a *appRole="['ADMIN']" routerLink="/crises/nova" routerLinkActive="active" class="sidebar__link" title="Nova Crise">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 12h14" />
           <path d="M12 5v14" />
         </svg>
         <span>Nova Crise</span>
       </a>
-      <a routerLink="/relatorios" routerLinkActive="active" class="sidebar__link">
+      <a routerLink="/relatorios" routerLinkActive="active" class="sidebar__link" title="Relatórios">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
           <path d="M14 2v4a2 2 0 0 0 2 2h4" />
@@ -58,7 +60,16 @@
       <ng-container *appRole="['ADMIN']">
         <p class="sidebar__group-label">Administração</p>
 
-        <a routerLink="/departamentos" routerLinkActive="active" class="sidebar__link">
+        <a routerLink="/usuarios" routerLinkActive="active" class="sidebar__link" title="Usuários">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Usuários</span>
+        </a>
+        <a routerLink="/departamentos" routerLinkActive="active" class="sidebar__link" title="Departamentos">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
             <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
@@ -67,7 +78,7 @@
           </svg>
           <span>Departamentos</span>
         </a>
-        <a routerLink="/tipos-crise" routerLinkActive="active" class="sidebar__link">
+        <a routerLink="/tipos-crise" routerLinkActive="active" class="sidebar__link" title="Tipos de Crise">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
@@ -76,7 +87,7 @@
           </svg>
           <span>Tipos de Crise</span>
         </a>
-        <a routerLink="/cenarios" routerLinkActive="active" class="sidebar__link">
+        <a routerLink="/cenarios" routerLinkActive="active" class="sidebar__link" title="Cenários de Crise">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
@@ -86,7 +97,7 @@
           </svg>
           <span>Cenários de Crise</span>
         </a>
-        <a routerLink="/campi" routerLinkActive="active" class="sidebar__link">
+        <a routerLink="/campi" routerLinkActive="active" class="sidebar__link" title="Campi">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
@@ -95,7 +106,7 @@
           </svg>
           <span>Campi</span>
         </a>
-        <a routerLink="/instituicoes" routerLinkActive="active" class="sidebar__link">
+        <a routerLink="/instituicoes" routerLinkActive="active" class="sidebar__link" title="Instituições">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <line x1="3" x2="21" y1="22" y2="22" />
             <line x1="6" x2="6" y1="18" y2="11" />
@@ -106,7 +117,7 @@
           </svg>
           <span>Instituições</span>
         </a>
-        <a routerLink="/auditoria" routerLinkActive="active" class="sidebar__link">
+        <a routerLink="/auditoria" routerLinkActive="active" class="sidebar__link" title="Auditoria">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 3v5h5" />
             <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
@@ -130,6 +141,18 @@
 
   <div class="content">
     <header class="header">
+      <button
+        class="header__toggle"
+        type="button"
+        (click)="toggleSidebar()"
+        aria-label="Alternar menu lateral"
+      >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="3" x2="21" y1="6" y2="6" />
+          <line x1="3" x2="21" y1="12" y2="12" />
+          <line x1="3" x2="21" y1="18" y2="18" />
+        </svg>
+      </button>
       <nav class="header__crumbs" aria-label="Trilha de navegação">
         <span class="header__crumb">SGCI</span>
         @for (crumb of crumbs(); track $index) {

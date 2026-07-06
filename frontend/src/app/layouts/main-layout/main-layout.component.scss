@@ -2,6 +2,10 @@
   display: flex;
   min-height: 100vh;
   background: var(--bg-app);
+
+  &__overlay {
+    display: none;
+  }
 }
 
 .sidebar {
@@ -15,6 +19,9 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  transition:
+    width 0.2s ease,
+    transform 0.2s ease;
 
   &__brand {
     display: flex;
@@ -184,12 +191,37 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-6);
+  gap: var(--space-3);
+
+  &__toggle {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover {
+      background: var(--sidebar-bg-soft);
+      color: var(--text-main);
+    }
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
+    }
+  }
 
   &__crumbs {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     min-width: 0;
+    flex: 1;
   }
 
   &__crumb {
@@ -248,24 +280,57 @@
   overflow: auto;
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    width: 74px;
+/* ---------- Rail colapsado (somente desktop) ---------- */
+@media (min-width: 769px) {
+  .sidebar--collapsed {
+    width: 76px;
 
-    &__brand-text,
-    &__group-label,
-    &__user-info,
-    &__link span:not(.icon) {
+    .sidebar__brand {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .sidebar__brand-text,
+    .sidebar__group-label,
+    .sidebar__user-info,
+    .sidebar__link span:not(.icon) {
       display: none;
     }
-    &__link {
+    .sidebar__link {
       justify-content: center;
     }
-    &__user {
+    .sidebar__user {
       justify-content: center;
-      padding: var(--space-4) 0;
+      padding-left: 0;
+      padding-right: 0;
     }
   }
+}
+
+/* ---------- Drawer off-canvas (mobile) ---------- */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    width: 260px;
+    transform: translateX(-100%);
+  }
+
+  .layout--mobile-open .sidebar {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .layout--mobile-open .layout__overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(15, 23, 42, 0.45);
+  }
+
   .header {
     padding: 0 var(--space-4);
 

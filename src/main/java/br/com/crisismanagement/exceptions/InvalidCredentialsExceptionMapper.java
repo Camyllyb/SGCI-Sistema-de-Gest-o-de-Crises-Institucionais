@@ -13,7 +13,7 @@ public class InvalidCredentialsExceptionMapper implements ExceptionMapper<Invali
     public Response toResponse(InvalidCredentialsException exception) {
         return Response.status(Response.Status.UNAUTHORIZED)
                 .type(MediaType.APPLICATION_JSON)
-                .entity(new LoginResponse(false, exception.getMessage()))
+                .entity(new LoginResponse(false, exception.getMessage(), false))
                 .build();
     }
 }

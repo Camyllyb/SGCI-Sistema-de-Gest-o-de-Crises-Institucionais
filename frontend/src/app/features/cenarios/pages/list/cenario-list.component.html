@@ -4,6 +4,15 @@
       <h1>Cenários de Crise</h1>
       <span class="page__subtitle">Modelos de crise pré-definidos</span>
     </div>
+    <div class="page__actions">
+      <a class="btn btn--primary" routerLink="/cenarios/novo">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
+        <span>Novo</span>
+      </a>
+    </div>
   </header>
 
   @if (loading()) {
@@ -20,6 +29,7 @@
           <th>Tipo de Crise</th>
           <th>Departamento</th>
           <th>Status</th>
+          <th class="cell-actions">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -28,17 +38,23 @@
             <td class="cell-id">#{{ cenario.id }}</td>
             <td>{{ cenario.descricao }}</td>
             <td class="muted">{{ cenario.nivelSugerido || '-' }}</td>
-            <td class="muted">{{ cenario.tipoCriseId }}</td>
-            <td class="muted">{{ cenario.departamentoId }}</td>
+            <td class="muted">{{ tipoNome(cenario.tipoCriseId) }}</td>
+            <td class="muted">{{ departamentoNome(cenario.departamentoId) }}</td>
             <td>
               <span [class]="cenario.active ? 'badge badge--success' : 'badge badge--neutral'">{{
                 cenario.active ? 'Ativo' : 'Inativo'
               }}</span>
             </td>
+            <td class="cell-actions">
+              <a class="btn btn--ghost btn--sm" [routerLink]="['/cenarios', cenario.id, 'editar']">Editar</a>
+              <button class="btn btn--ghost btn--sm btn--danger-ghost" type="button" (click)="remove(cenario)">
+                Excluir
+              </button>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="6" class="empty">Nenhum cenário de crise cadastrado.</td>
+            <td colspan="7" class="empty">Nenhum cenário de crise cadastrado.</td>
           </tr>
         }
       </tbody>

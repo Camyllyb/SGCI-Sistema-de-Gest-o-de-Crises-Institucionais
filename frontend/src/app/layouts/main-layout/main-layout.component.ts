@@ -17,8 +17,12 @@ const CRUMB_LABELS: Record<string, string> = {
   cenarios: 'Cenários de Crise',
   campi: 'Campi',
   instituicoes: 'Instituições',
+  usuarios: 'Usuários',
   auditoria: 'Auditoria',
+  editar: 'Editar',
 };
+
+const SIDEBAR_COLLAPSED_KEY = 'sgci.sidebar.collapsed';
 
 @Component({
   selector: 'app-main-layout',
@@ -33,6 +37,8 @@ export class MainLayoutComponent {
 
   readonly user = this.authService.currentUser;
   readonly crumbs = signal<string[]>([]);
+  readonly collapsed = signal<boolean>(this.readCollapsed());
+  readonly mobileOpen = signal(false);
 
   constructor() {
     this.updateCrumbs(this.router.url);
@@ -41,11 +47,48 @@ export class MainLayoutComponent {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe((event) => this.updateCrumbs(event.urlAfterRedirects));
+      .subscribe((event) => {
+        this.updateCrumbs(event.urlAfterRedirects);
+        this.mobileOpen.set(false);
+      });
+  }
+
+  toggleSidebar(): void {
+    const isMobile =
+      typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) {
+      this.mobileOpen.update((open) => !open);
+      return;
+    }
+    this.collapsed.update((collapsed) => {
+      const next = !collapsed;
+      this.persistCollapsed(next);
+      return next;
+    });
+  }
+
+  closeMobile(): void {
+    this.mobileOpen.set(false);
   }
 
   onLogout(): void {
     this.authService.logout().subscribe(() => this.router.navigate(['/login']));
+  }
+
+  private readCollapsed(): boolean {
+    try {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  private persistCollapsed(value: boolean): void {
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(value));
+    } catch {
+      /* localStorage indisponível — ignora persistência */
+    }
   }
 
   private updateCrumbs(url: string): void {

@@ -244,6 +244,25 @@ a:hover {
   font-size: 0.82rem;
 }
 
+/* Botão de ação destrutiva discreto (usado nas tabelas) */
+.btn--danger-ghost {
+  background: transparent;
+  color: var(--danger);
+}
+.btn--danger-ghost:not(:disabled):hover {
+  background: var(--danger-soft);
+  color: var(--danger-hover);
+}
+
+/* Coluna de ações das listagens */
+.cell-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+.cell-actions .btn + .btn {
+  margin-left: var(--space-1);
+}
+
 /* ---------- 5. Badges / pílulas de status ---------- */
 .badge {
   display: inline-flex;
@@ -656,6 +675,11 @@ textarea.form-control {
   background: var(--danger-soft);
   color: var(--danger-text);
   border-color: rgba(220, 38, 38, 0.25);
+}
+.alert--success {
+  background: var(--success-soft);
+  color: var(--success-text);
+  border-color: rgba(22, 163, 74, 0.25);
 }
 
 .state {

@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 import { API_BASE_URL } from '../config/api.config';
-import { LoginRequest, LoginResponse } from '../models/auth.model';
+import { ChangePasswordRequest, LoginRequest, LoginResponse } from '../models/auth.model';
 import { User } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,17 @@ export class AuthService {
   fetchCurrentUser(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/me`).pipe(
       tap((user) => this.currentUser.set(user)),
+    );
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.baseUrl}/change-password`, request).pipe(
+      tap(() => {
+        const user = this.currentUser();
+        if (user) {
+          this.currentUser.set({ ...user, mustChangePassword: false });
+        }
+      }),
     );
   }
 }

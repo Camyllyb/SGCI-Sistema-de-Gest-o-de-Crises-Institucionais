@@ -42,6 +42,9 @@ public class User extends PanacheEntityBase {
     @Column(name = "active", nullable = false)
     public boolean active;
 
+    @Column(name = "must_change_password", nullable = false)
+    public boolean mustChangePassword;
+
     @Column(name = "created_at", nullable = false)
     public LocalDateTime createdAt;
 }

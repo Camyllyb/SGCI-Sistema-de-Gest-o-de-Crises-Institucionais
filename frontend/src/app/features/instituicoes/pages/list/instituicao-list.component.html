@@ -4,6 +4,12 @@
       <h1>Instituições</h1>
       <span class="page__subtitle">Instituições de ensino cadastradas</span>
     </div>
+    <div class="page__actions">
+      <a class="btn btn--primary" routerLink="/instituicoes/novo">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+        <span>Novo</span>
+      </a>
+    </div>
   </header>
 
   @if (loading()) {
@@ -18,6 +24,7 @@
           <th>Nome</th>
           <th>Sigla</th>
           <th>Status</th>
+          <th class="cell-actions">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -31,10 +38,14 @@
                 instituicao.active ? 'Ativo' : 'Inativo'
               }}</span>
             </td>
+            <td class="cell-actions">
+              <a class="btn btn--ghost btn--sm" [routerLink]="['/instituicoes', instituicao.id, 'editar']">Editar</a>
+              <button class="btn btn--ghost btn--sm btn--danger-ghost" type="button" (click)="remove(instituicao)">Excluir</button>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="4" class="empty">Nenhuma instituição cadastrada.</td>
+            <td colspan="5" class="empty">Nenhuma instituição cadastrada.</td>
           </tr>
         }
       </tbody>
