@@ -49,9 +49,9 @@
                 crise.nivel.toLowerCase()
               }}</span>
             </td>
-            <td class="muted">{{ crise.tipoCriseId }}</td>
-            <td class="muted">{{ crise.campusId }}</td>
-            <td class="muted">{{ crise.departamentoId }}</td>
+            <td class="muted">{{ tipoNome(crise.tipoCriseId) }}</td>
+            <td class="muted">{{ campusNome(crise.campusId) }}</td>
+            <td class="muted">{{ departamentoNome(crise.departamentoId) }}</td>
           </tr>
         } @empty {
           <tr>

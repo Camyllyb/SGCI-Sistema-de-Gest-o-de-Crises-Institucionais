@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { InstituicaoRequest } from '../../models/instituicao.model';
 import { InstituicaoService } from '../../services/instituicao.service';
 
@@ -51,8 +52,8 @@ export class InstituicaoFormComponent implements OnInit {
       : this.instituicaoService.create(this.model);
     request$.subscribe({
       next: () => this.router.navigate(['/instituicoes']),
-      error: () => {
-        this.error.set('Não foi possível salvar a instituição. Verifique os campos.');
+      error: (err) => {
+        this.error.set(extractApiError(err, 'Não foi possível salvar a instituição. Verifique os campos.'));
         this.saving.set(false);
       },
     });

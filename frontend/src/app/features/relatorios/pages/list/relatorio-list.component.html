@@ -5,7 +5,7 @@
       <span class="page__subtitle">Relatórios de encerramento de crises</span>
     </div>
     <div class="page__actions">
-      <a class="btn-primary" routerLink="/relatorios/novo">
+      <a *appRole="['ADMIN']" class="btn-primary" routerLink="/relatorios/novo">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 12h14" />
           <path d="M12 5v14" />

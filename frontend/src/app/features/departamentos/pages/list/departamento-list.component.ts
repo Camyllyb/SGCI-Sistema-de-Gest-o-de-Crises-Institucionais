@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Departamento } from '../../models/departamento.model';
 import { DepartamentoService } from '../../services/departamento.service';
 
@@ -43,7 +44,10 @@ export class DepartamentoListComponent implements OnInit {
     }
     this.departamentoService.deactivate(departamento.id).subscribe({
       next: () => this.load(),
-      error: () => this.error.set('Não foi possível excluir o departamento.'),
+      error: (err) =>
+        this.error.set(
+          extractApiError(err, 'Não foi possível excluir o departamento. Verifique se ele não está em uso.'),
+        ),
     });
   }
 }

@@ -49,7 +49,7 @@
       </dl>
     </article>
 
-    <div class="detail__actions">
+    <div *appRole="['ADMIN']" class="detail__actions">
       @if (proximoStatus(); as proximo) {
         <button class="btn-primary" type="button" (click)="avancarStatus()">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">

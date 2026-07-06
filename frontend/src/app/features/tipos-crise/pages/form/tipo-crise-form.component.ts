@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { TipoCriseRequest } from '../../models/tipo-crise.model';
 import { TipoCriseService } from '../../services/tipo-crise.service';
 
@@ -49,8 +50,8 @@ export class TipoCriseFormComponent implements OnInit {
     const request$ = id ? this.tipoCriseService.update(id, this.model) : this.tipoCriseService.create(this.model);
     request$.subscribe({
       next: () => this.router.navigate(['/tipos-crise']),
-      error: () => {
-        this.error.set('Não foi possível salvar o tipo de crise. Verifique os campos.');
+      error: (err) => {
+        this.error.set(extractApiError(err, 'Não foi possível salvar o tipo de crise. Verifique os campos.'));
         this.saving.set(false);
       },
     });

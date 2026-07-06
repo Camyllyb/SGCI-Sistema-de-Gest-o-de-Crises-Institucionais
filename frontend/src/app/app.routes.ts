@@ -158,6 +158,7 @@ export const routes: Routes = [
       },
       {
         path: 'relatorios/novo',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/relatorios/pages/form/relatorio-form.component').then((m) => m.RelatorioFormComponent),
       },

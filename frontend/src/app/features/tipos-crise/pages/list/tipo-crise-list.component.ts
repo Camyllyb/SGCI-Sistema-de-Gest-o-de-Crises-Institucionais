@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { TipoCrise } from '../../models/tipo-crise.model';
 import { TipoCriseService } from '../../services/tipo-crise.service';
 
@@ -43,7 +44,10 @@ export class TipoCriseListComponent implements OnInit {
     }
     this.tipoCriseService.deactivate(tipo.id).subscribe({
       next: () => this.load(),
-      error: () => this.error.set('Não foi possível excluir o tipo de crise.'),
+      error: (err) =>
+        this.error.set(
+          extractApiError(err, 'Não foi possível excluir o tipo de crise. Verifique se ele não está em uso.'),
+        ),
     });
   }
 }

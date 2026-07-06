@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Departamento } from '../../../departamentos/models/departamento.model';
 import { DepartamentoService } from '../../../departamentos/services/departamento.service';
 import { TipoCrise } from '../../../tipos-crise/models/tipo-crise.model';
@@ -71,8 +72,8 @@ export class CenarioFormComponent implements OnInit {
     const request$ = id ? this.cenarioService.update(id, this.model) : this.cenarioService.create(this.model);
     request$.subscribe({
       next: () => this.router.navigate(['/cenarios']),
-      error: () => {
-        this.error.set('Não foi possível salvar o cenário. Verifique os campos.');
+      error: (err) => {
+        this.error.set(extractApiError(err, 'Não foi possível salvar o cenário. Verifique os campos.'));
         this.saving.set(false);
       },
     });

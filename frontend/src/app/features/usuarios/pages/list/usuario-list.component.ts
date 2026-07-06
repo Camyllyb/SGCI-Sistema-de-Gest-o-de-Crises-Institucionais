@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { DepartamentoService } from '../../../departamentos/services/departamento.service';
 import { Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
@@ -23,8 +24,9 @@ export class UsuarioListComponent implements OnInit {
   private readonly departamentos = signal<Map<number, string>>(new Map());
 
   ngOnInit(): void {
-    this.departamentoService.listAll().subscribe((data) => {
-      this.departamentos.set(new Map(data.map((d) => [d.id, d.nome])));
+    this.departamentoService.listAll().subscribe({
+      next: (data) => this.departamentos.set(new Map(data.map((d) => [d.id, d.nome]))),
+      error: () => this.departamentos.set(new Map()),
     });
     this.load();
   }
@@ -57,7 +59,7 @@ export class UsuarioListComponent implements OnInit {
     }
     this.usuarioService.deactivate(usuario.id).subscribe({
       next: () => this.load(),
-      error: () => this.error.set('Não foi possível desativar o usuário.'),
+      error: (err) => this.error.set(extractApiError(err, 'Não foi possível desativar o usuário.')),
     });
   }
 
@@ -71,7 +73,7 @@ export class UsuarioListComponent implements OnInit {
         this.notice.set(`Nova senha temporária enviada para ${usuario.email}.`);
         this.load();
       },
-      error: () => this.error.set('Não foi possível resetar a senha.'),
+      error: (err) => this.error.set(extractApiError(err, 'Não foi possível resetar a senha.')),
     });
   }
 }

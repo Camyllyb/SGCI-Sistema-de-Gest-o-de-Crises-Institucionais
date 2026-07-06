@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Crise } from '../../../crises/models/crise.model';
 import { CriseService } from '../../../crises/services/crise.service';
 import { RelatorioRequest } from '../../models/relatorio.model';
@@ -43,8 +44,8 @@ export class RelatorioFormComponent implements OnInit {
     this.error.set(null);
     this.relatorioService.create(this.model).subscribe({
       next: () => this.router.navigate(['/relatorios']),
-      error: () => {
-        this.error.set('Não foi possível cadastrar o relatório. Verifique os campos e a crise selecionada.');
+      error: (err) => {
+        this.error.set(extractApiError(err, 'Não foi possível cadastrar o relatório. Verifique os campos e a crise selecionada.'));
         this.saving.set(false);
       },
     });

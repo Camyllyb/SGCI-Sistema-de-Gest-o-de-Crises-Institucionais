@@ -43,7 +43,7 @@ public class CriseController {
     }
 
     @POST
-    @RolesAllowed("ADMIN")
+    @RolesAllowed({"ADMIN", "COMUM"})
     public Response create(@Valid CriseRequest request) {
         CriseResponse created = criseService.create(request);
         return Response.status(Response.Status.CREATED).entity(created).build();

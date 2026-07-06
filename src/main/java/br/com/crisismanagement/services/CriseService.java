@@ -15,7 +15,11 @@ import br.com.crisismanagement.entities.User;
 import br.com.crisismanagement.entities.enums.PerfilUsuario;
 import br.com.crisismanagement.entities.enums.StatusCrise;
 import br.com.crisismanagement.repositories.AcaoCriseRepository;
+import br.com.crisismanagement.repositories.CampusRepository;
+import br.com.crisismanagement.repositories.CenarioCriseRepository;
 import br.com.crisismanagement.repositories.CriseRepository;
+import br.com.crisismanagement.repositories.DepartamentoRepository;
+import br.com.crisismanagement.repositories.TipoCriseRepository;
 import br.com.crisismanagement.repositories.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,6 +41,18 @@ public class CriseService {
     UserRepository userRepository;
 
     @Inject
+    TipoCriseRepository tipoCriseRepository;
+
+    @Inject
+    CampusRepository campusRepository;
+
+    @Inject
+    CenarioCriseRepository cenarioCriseRepository;
+
+    @Inject
+    DepartamentoRepository departamentoRepository;
+
+    @Inject
     JsonWebToken jsonWebToken;
 
     public List<CriseResponse> listAll() {
@@ -51,6 +67,8 @@ public class CriseService {
 
     @Transactional
     public CriseResponse create(CriseRequest request) {
+        validarReferencias(request);
+
         Crise crise = new Crise();
         crise.titulo = request.titulo();
         crise.descricao = request.descricao();
@@ -101,6 +119,27 @@ public class CriseService {
         acao.createdAt = LocalDateTime.now();
         acaoCriseRepository.persist(acao);
         return AcaoCriseResponse.from(acao);
+    }
+
+    /**
+     * Valida que as referências informadas existem antes de persistir, evitando
+     * que um ID inválido estoure uma ConstraintViolationException (HTTP 500 com
+     * stack trace). Retorna erro 400 com mensagem clara para o campo faltante.
+     */
+    private void validarReferencias(CriseRequest request) {
+        if (tipoCriseRepository.findByIdOptional(request.tipoCriseId()).isEmpty()) {
+            throw new BadRequestException("Tipo de crise informado não existe.");
+        }
+        if (campusRepository.findByIdOptional(request.campusId()).isEmpty()) {
+            throw new BadRequestException("Campus informado não existe.");
+        }
+        if (request.cenarioId() != null
+                && cenarioCriseRepository.findByIdOptional(request.cenarioId()).isEmpty()) {
+            throw new BadRequestException("Cenário informado não existe.");
+        }
+        if (departamentoRepository.findByIdOptional(request.departamentoId()).isEmpty()) {
+            throw new BadRequestException("Departamento informado não existe.");
+        }
     }
 
     private Crise getOrThrow(Long id) {

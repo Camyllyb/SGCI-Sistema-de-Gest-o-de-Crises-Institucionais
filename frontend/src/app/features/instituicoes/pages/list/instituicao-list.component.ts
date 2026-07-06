@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Instituicao } from '../../models/instituicao.model';
 import { InstituicaoService } from '../../services/instituicao.service';
 
@@ -42,7 +43,10 @@ export class InstituicaoListComponent implements OnInit {
     }
     this.instituicaoService.deactivate(item.id).subscribe({
       next: () => this.load(),
-      error: () => this.error.set('Não foi possível excluir a instituição.'),
+      error: (err) =>
+        this.error.set(
+          extractApiError(err, 'Não foi possível excluir a instituição. Verifique se ela não possui campi vinculados.'),
+        ),
     });
   }
 }

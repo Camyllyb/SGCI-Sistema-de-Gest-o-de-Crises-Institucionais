@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { extractApiError } from '../../../../core/utils/http-error';
 
 @Component({
   selector: 'app-login',
@@ -33,9 +34,9 @@ export class LoginComponent {
           this.errorMessage.set(response.message);
         }
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set('Credenciais inválidas');
+        this.errorMessage.set(extractApiError(err, 'E-mail ou senha inválidos.'));
       },
     });
   }

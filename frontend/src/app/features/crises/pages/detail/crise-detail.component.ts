@@ -2,6 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { RoleDirective } from '../../../../core/directives/role.directive';
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Acao, AcaoRequest, TipoAcao } from '../../models/acao.model';
 import { Crise, StatusCrise } from '../../models/crise.model';
 import { CriseService } from '../../services/crise.service';
@@ -9,7 +11,7 @@ import { CriseService } from '../../services/crise.service';
 @Component({
   selector: 'app-crise-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, RoleDirective],
   templateUrl: './crise-detail.component.html',
 })
 export class CriseDetailComponent implements OnInit {
@@ -70,7 +72,7 @@ export class CriseDetailComponent implements OnInit {
     }
     this.criseService.changeStatus(this.criseId, proximo).subscribe({
       next: (data) => this.crise.set(data),
-      error: () => this.error.set('Não foi possível alterar o status.'),
+      error: (err) => this.error.set(extractApiError(err, 'Não foi possível alterar o status.')),
     });
   }
 
@@ -80,7 +82,7 @@ export class CriseDetailComponent implements OnInit {
         this.novaAcao = { descricao: '', tipo: 'CONTENCAO' };
         this.carregarAcoes();
       },
-      error: () => this.error.set('Não foi possível registrar a ação.'),
+      error: (err) => this.error.set(extractApiError(err, 'Não foi possível registrar a ação.')),
     });
   }
 }

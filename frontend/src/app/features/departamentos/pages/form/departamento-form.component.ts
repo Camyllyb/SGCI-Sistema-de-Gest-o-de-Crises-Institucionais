@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { DepartamentoRequest } from '../../models/departamento.model';
 import { DepartamentoService } from '../../services/departamento.service';
 
@@ -51,8 +52,8 @@ export class DepartamentoFormComponent implements OnInit {
       : this.departamentoService.create(this.model);
     request$.subscribe({
       next: () => this.router.navigate(['/departamentos']),
-      error: () => {
-        this.error.set('Não foi possível salvar o departamento. Verifique os campos.');
+      error: (err) => {
+        this.error.set(extractApiError(err, 'Não foi possível salvar o departamento. Verifique os campos.'));
         this.saving.set(false);
       },
     });

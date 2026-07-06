@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Instituicao } from '../../../instituicoes/models/instituicao.model';
 import { InstituicaoService } from '../../../instituicoes/services/instituicao.service';
 import { Campus } from '../../models/campus.model';
@@ -27,8 +28,10 @@ export class CampusListComponent implements OnInit {
   }
 
   loadInstituicoes(): void {
-    this.instituicaoService.listAll().subscribe((data: Instituicao[]) => {
-      this.instituicoes.set(new Map(data.map((inst) => [inst.id, inst.nome])));
+    this.instituicaoService.listAll().subscribe({
+      next: (data: Instituicao[]) =>
+        this.instituicoes.set(new Map(data.map((inst) => [inst.id, inst.nome]))),
+      error: () => this.instituicoes.set(new Map()),
     });
   }
 
@@ -57,7 +60,8 @@ export class CampusListComponent implements OnInit {
     }
     this.campusService.deactivate(item.id).subscribe({
       next: () => this.load(),
-      error: () => this.error.set('Não foi possível excluir o campus.'),
+      error: (err) =>
+        this.error.set(extractApiError(err, 'Não foi possível excluir o campus. Verifique se ele não está em uso.')),
     });
   }
 }

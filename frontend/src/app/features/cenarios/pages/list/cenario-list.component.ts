@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Departamento } from '../../../departamentos/models/departamento.model';
 import { DepartamentoService } from '../../../departamentos/services/departamento.service';
 import { TipoCrise } from '../../../tipos-crise/models/tipo-crise.model';
@@ -26,8 +27,14 @@ export class CenarioListComponent implements OnInit {
   readonly error = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.tipoCriseService.listAll().subscribe((d) => this.tipos.set(d));
-    this.departamentoService.listAll().subscribe((d) => this.departamentos.set(d));
+    this.tipoCriseService.listAll().subscribe({
+      next: (d) => this.tipos.set(d),
+      error: () => this.tipos.set([]),
+    });
+    this.departamentoService.listAll().subscribe({
+      next: (d) => this.departamentos.set(d),
+      error: () => this.departamentos.set([]),
+    });
     this.load();
   }
 
@@ -60,7 +67,8 @@ export class CenarioListComponent implements OnInit {
     }
     this.cenarioService.deactivate(item.id).subscribe({
       next: () => this.load(),
-      error: () => this.error.set('Não foi possível excluir o cenário.'),
+      error: (err) =>
+        this.error.set(extractApiError(err, 'Não foi possível excluir o cenário. Verifique se ele não está em uso.')),
     });
   }
 }

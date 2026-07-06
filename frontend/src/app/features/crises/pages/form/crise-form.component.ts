@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { extractApiError } from '../../../../core/utils/http-error';
 import { Campus } from '../../../campi/models/campus.model';
 import { CampusService } from '../../../campi/services/campus.service';
 import { Cenario } from '../../../cenarios/models/cenario.model';
@@ -58,8 +59,8 @@ export class CriseFormComponent implements OnInit {
     this.error.set(null);
     this.criseService.create(this.model).subscribe({
       next: () => this.router.navigate(['/crises']),
-      error: () => {
-        this.error.set('Não foi possível cadastrar a crise. Verifique os campos obrigatórios.');
+      error: (err) => {
+        this.error.set(extractApiError(err, 'Não foi possível cadastrar a crise. Verifique os campos e tente novamente.'));
         this.saving.set(false);
       },
     });
