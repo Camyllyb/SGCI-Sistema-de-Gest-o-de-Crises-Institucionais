@@ -1,0 +1,40 @@
+<section class="list">
+  <header class="list__header">
+    <h1 class="list__title">Departamentos</h1>
+  </header>
+
+  @if (loading()) {
+    <p class="list__message">Carregando...</p>
+  } @else if (error(); as errorMessage) {
+    <p class="list__message list__message--error">{{ errorMessage }}</p>
+  } @else {
+    <table class="list__table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Sigla</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (departamento of departamentos(); track departamento.id) {
+          <tr>
+            <td class="cell-id">#{{ departamento.id }}</td>
+            <td>{{ departamento.nome }}</td>
+            <td class="muted">{{ departamento.sigla }}</td>
+            <td>
+              <span [class]="departamento.active ? 'badge badge--success' : 'badge badge--neutral'">{{
+                departamento.active ? 'Ativo' : 'Inativo'
+              }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="list__empty">Nenhum departamento cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

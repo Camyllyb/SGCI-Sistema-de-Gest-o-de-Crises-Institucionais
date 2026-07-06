@@ -1,0 +1,47 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>Cenários de Crise</h1>
+      <span class="page__subtitle">Modelos de crise pré-definidos</span>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="state">Carregando...</p>
+  } @else if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descrição</th>
+          <th>Nível Sugerido</th>
+          <th>Tipo de Crise</th>
+          <th>Departamento</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (cenario of cenarios(); track cenario.id) {
+          <tr>
+            <td class="cell-id">#{{ cenario.id }}</td>
+            <td>{{ cenario.descricao }}</td>
+            <td class="muted">{{ cenario.nivelSugerido || '-' }}</td>
+            <td class="muted">{{ cenario.tipoCriseId }}</td>
+            <td class="muted">{{ cenario.departamentoId }}</td>
+            <td>
+              <span [class]="cenario.active ? 'badge badge--success' : 'badge badge--neutral'">{{
+                cenario.active ? 'Ativo' : 'Inativo'
+              }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">Nenhum cenário de crise cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

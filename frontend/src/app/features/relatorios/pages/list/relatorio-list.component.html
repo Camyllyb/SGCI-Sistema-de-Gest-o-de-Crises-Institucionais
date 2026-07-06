@@ -1,0 +1,48 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>Relatórios</h1>
+      <span class="page__subtitle">Relatórios de encerramento de crises</span>
+    </div>
+    <div class="page__actions">
+      <a class="btn-primary" routerLink="/relatorios/novo">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
+        <span>Novo Relatório</span>
+      </a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="state">Carregando...</p>
+  } @else if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Crise</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (relatorio of relatorios(); track relatorio.id) {
+          <tr>
+            <td class="cell-id">#{{ relatorio.id }}</td>
+            <td>{{ relatorio.titulo }}</td>
+            <td class="muted">#{{ relatorio.criseId }}</td>
+            <td class="muted">{{ relatorio.createdAt }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="empty">Nenhum relatório cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

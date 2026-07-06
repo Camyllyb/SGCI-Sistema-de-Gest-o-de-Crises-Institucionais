@@ -1,4 +1,6 @@
 package br.com.crisismanagement.dto;
 
-public record UserResponse(Long id, String name, String email) {
+import br.com.crisismanagement.entities.enums.PerfilUsuario;
+
+public record UserResponse(Long id, String name, String email, PerfilUsuario perfil) {
 }

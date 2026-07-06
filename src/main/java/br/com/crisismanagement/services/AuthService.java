@@ -40,6 +40,7 @@ public class AuthService {
                 .subject(user.id.toString())
                 .claim("name", user.name)
                 .claim("email", user.email)
+                .groups(user.perfil.name())
                 .expiresIn(TOKEN_EXPIRATION_SECONDS)
                 .sign();
     }
@@ -48,6 +49,6 @@ public class AuthService {
         Long id = Long.valueOf(jsonWebToken.getSubject());
         User user = userRepository.findByIdOptional(id)
                 .orElseThrow(InvalidCredentialsException::new);
-        return new UserResponse(user.id, user.name, user.email);
+        return new UserResponse(user.id, user.name, user.email, user.perfil);
     }
 }

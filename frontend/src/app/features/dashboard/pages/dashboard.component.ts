@@ -1,22 +1,26 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
-import { AuthService } from '../../../core/services/auth.service';
+import { DashboardResumo } from '../models/dashboard.model';
+import { DashboardService } from '../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
+export class DashboardComponent implements OnInit {
+  private readonly dashboardService = inject(DashboardService);
 
-  readonly user = this.authService.currentUser;
+  readonly resumo = signal<DashboardResumo | null>(null);
+  readonly error = signal<string | null>(null);
 
-  onLogout(): void {
-    this.authService.logout().subscribe(() => this.router.navigate(['/login']));
+  ngOnInit(): void {
+    this.dashboardService.resumo().subscribe({
+      next: (data) => this.resumo.set(data),
+      error: () => this.error.set('Não foi possível carregar os indicadores.'),
+    });
   }
 }

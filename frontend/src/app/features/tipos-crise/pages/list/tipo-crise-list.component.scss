@@ -1,0 +1,21 @@
+/* Estrutura/tabela vêm do design system global (styles.scss).
+   Aqui apenas os detalhes específicos da tela de listagem. */
+.list {
+  &__title {
+    font-size: 1.5rem;
+  }
+
+  &__message {
+    color: var(--text-muted);
+
+    &--error {
+      color: var(--danger-text);
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-6);
+  }
+}

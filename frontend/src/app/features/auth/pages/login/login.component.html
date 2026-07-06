@@ -1,37 +1,112 @@
 <div class="login">
-  <form class="login__card" (ngSubmit)="onSubmit()">
-    <h1 class="login__title">Sistema de Gerenciamento de Crises Institucionais</h1>
+  <div class="login__form-side">
+    <form class="login__card" (ngSubmit)="onSubmit()">
+      <div class="login__brand">
+        <span class="login__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+        </span>
+        <span class="login__brand-text">
+          <strong>SGCI</strong>
+          <small>Sistema de Gestão de Crises</small>
+        </span>
+      </div>
 
-    <label class="login__label" for="email">Email</label>
-    <input
-      class="login__input"
-      id="email"
-      name="email"
-      type="email"
-      autocomplete="email"
-      [ngModel]="email()"
-      (ngModelChange)="email.set($event)"
-      required
-    />
+      <h1 class="login__title">Bem-vindo de volta</h1>
+      <p class="login__subtitle">Acesse o painel institucional de gerenciamento de crises.</p>
 
-    <label class="login__label" for="password">Senha</label>
-    <input
-      class="login__input"
-      id="password"
-      name="password"
-      type="password"
-      autocomplete="current-password"
-      [ngModel]="password()"
-      (ngModelChange)="password.set($event)"
-      required
-    />
+      <div class="form-group">
+        <label class="form-label" for="email">E-mail institucional</label>
+        <input
+          class="form-control"
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="voce@universidade.edu.br"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          required
+        />
+      </div>
 
-    @if (errorMessage()) {
-      <p class="login__error">{{ errorMessage() }}</p>
-    }
+      <div class="form-group">
+        <div class="login__label-row">
+          <label class="form-label" for="password">Senha</label>
+          <button class="login__forgot" type="button">Esqueceu a senha?</button>
+        </div>
+        <input
+          class="form-control"
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="••••••••"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          required
+        />
+      </div>
 
-    <button class="login__button" type="submit" [disabled]="loading()">
-      {{ loading() ? 'Entrando...' : 'Entrar' }}
-    </button>
-  </form>
+      @if (errorMessage()) {
+        <p class="alert alert--error login__error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <button class="btn-primary login__button" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Entrando...' : 'Entrar no Sistema' }}
+      </button>
+
+      <p class="login__notice">
+        <svg class="login__notice-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+        <span>
+          Este sistema é de uso exclusivo da instituição. O acesso não autorizado é passível de
+          sanções administrativas e legais.
+        </span>
+      </p>
+
+      <p class="login__footer">© 2025 SGCI — Todos os direitos reservados</p>
+    </form>
+  </div>
+
+  <aside class="login__aside" aria-hidden="true">
+    <div class="login__aside-logo">
+      <svg viewBox="0 0 24 24">
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+        <path d="M12 9v4" />
+        <path d="M12 17h.01" />
+      </svg>
+    </div>
+
+    <div class="login__aside-body">
+      <h2 class="login__headline">Gestão inteligente<br />de crises institucionais</h2>
+      <p class="login__lead">
+        Monitore, coordene e resolva crises em tempo real com visibilidade total para tomadores de
+        decisão.
+      </p>
+
+      <div class="login__stats">
+        <div class="login__stat">
+          <span class="login__stat-value">98%</span>
+          <span class="login__stat-label">Taxa de resolução</span>
+        </div>
+        <div class="login__stat">
+          <span class="login__stat-value">4.2h</span>
+          <span class="login__stat-label">Tempo médio</span>
+        </div>
+        <div class="login__stat">
+          <span class="login__stat-value">12+</span>
+          <span class="login__stat-label">Campi cobertos</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="login__aside-footer">+240 gestores ativos na plataforma</p>
+  </aside>
 </div>

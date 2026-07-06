@@ -1,0 +1,113 @@
+<section class="page auditoria">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>Auditoria</h1>
+      <p class="page__subtitle">
+        Rastreabilidade de todas as ações de modificação (criação, atualização e exclusão) do sistema.
+      </p>
+    </div>
+  </header>
+
+  <div class="card card--pad auditoria__filters">
+    <div class="auditoria__field">
+      <label for="f-entidade">Entidade</label>
+      <select
+        id="f-entidade"
+        [ngModel]="filtroEntidade()"
+        (ngModelChange)="filtroEntidade.set($event); carregar()"
+      >
+        <option value="">Todas</option>
+        @for (entidade of facets().entidades; track entidade) {
+          <option [value]="entidade">{{ entidade }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="auditoria__field">
+      <label for="f-acao">Ação</label>
+      <select id="f-acao" [ngModel]="filtroAcao()" (ngModelChange)="filtroAcao.set($event); carregar()">
+        <option value="">Todas</option>
+        @for (acao of facets().acoes; track acao) {
+          <option [value]="acao">{{ acao }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="auditoria__field auditoria__field--grow">
+      <label for="f-usuario">Usuário</label>
+      <input
+        id="f-usuario"
+        type="text"
+        placeholder="Filtrar por nome do usuário..."
+        [ngModel]="filtroUsuario()"
+        (ngModelChange)="filtroUsuario.set($event)"
+        (keyup.enter)="carregar()"
+      />
+    </div>
+
+    <div class="auditoria__actions">
+      <button type="button" class="btn btn--primary btn--sm" (click)="carregar()">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <span>Filtrar</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn--secondary btn--sm"
+        (click)="limparFiltros()"
+        [disabled]="!hasFiltros()"
+      >
+        Limpar
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="state">Carregando registros...</p>
+  } @else if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  } @else {
+    <div class="auditoria__table-wrap">
+      <table class="data-table auditoria__table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Usuário</th>
+            <th>Ação</th>
+            <th>Entidade</th>
+            <th>Método</th>
+            <th>Recurso</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of logs(); track log.id) {
+            <tr>
+              <td class="auditoria__datetime">{{ log.dataHora | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td>
+                <div class="auditoria__user">
+                  <span class="auditoria__avatar" aria-hidden="true">{{ log.usuarioNome.charAt(0) }}</span>
+                  <span class="auditoria__user-info">
+                    <strong>{{ log.usuarioNome }}</strong>
+                    <small class="cell-id">#{{ log.usuarioId }}</small>
+                  </span>
+                </div>
+              </td>
+              <td><span [class]="acaoClass(log.acao)">{{ log.acao }}</span></td>
+              <td class="auditoria__entidade">{{ log.entidadeAfetada }}</td>
+              <td><span class="method-pill">{{ log.metodoHttp }}</span></td>
+              <td><code class="auditoria__recurso">{{ log.recurso }}</code></td>
+              <td><span [class]="statusClass(log.statusResposta)">{{ log.statusResposta }}</span></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty">Nenhum registro de auditoria encontrado.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

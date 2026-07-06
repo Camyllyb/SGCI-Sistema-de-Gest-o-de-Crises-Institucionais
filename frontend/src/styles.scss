@@ -1,1 +1,798 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================
+   SGCI · Design System (global)
+   Tokens, base reset, tipografia e classes utilitárias.
+   Estilos de conteúdo ficam sob `.main` para não afetar o login.
+   ============================================================ */
+
+/* ---------- 1. Design tokens ---------- */
+:root {
+  /* Superfícies */
+  --bg: #f8fafc;
+  --bg-app: #f8fafc; /* alias design system */
+  --surface: #ffffff;
+  --bg-card: #ffffff; /* alias design system */
+  --surface-muted: #f1f5f9;
+
+  /* Texto */
+  --text: #1e293b;
+  --text-main: #1e293b; /* alias design system */
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --text-inverse: #f8fafc;
+
+  /* Bordas */
+  --border: #e2e8f0;
+  --border-light: #e2e8f0; /* alias design system */
+  --border-strong: #cbd5e1;
+
+  /* Marca / primária — Verde Institucional IF */
+  --primary: #2f9e41;
+  --primary-hover: #248235;
+  --primary-active: #1e6b2c;
+  --primary-soft: #e8f6ea;
+  --primary-contrast: #ffffff;
+
+  /* Sidebar — painel branco flutuante */
+  --sidebar-bg: #ffffff;
+  --sidebar-bg-soft: #f1f5f9;
+  --sidebar-text: #64748b;
+  --sidebar-text-muted: #94a3b8;
+
+  /* Cores semânticas (status) */
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+  --success-text: #166534;
+
+  --warning: #ea580c;
+  --warning-soft: #ffedd5;
+  --warning-text: #9a3412;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-soft: #fee2e2;
+  --danger-text: #991b1b;
+
+  --info: #2563eb;
+  --info-soft: #eff6ff;
+  --info-text: #1e40af;
+
+  --neutral: #64748b;
+  --neutral-soft: #f1f5f9;
+  --neutral-text: #475569;
+
+  /* Espaçamento */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+
+  /* Raio de borda */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 8px; /* alias design system: botões e inputs */
+  --radius-lg: 16px; /* cards principais */
+  --radius-full: 999px;
+
+  /* Sombras (suaves, em camadas) */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.03); /* efeito flutuante dos painéis */
+  --shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12), 0 4px 10px rgba(15, 23, 42, 0.06);
+
+  /* Tipografia */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Movimento */
+  --transition: all 0.2s ease;
+
+  /* Anel de foco verde (acessível, não quebra layout) */
+  --ring: 0 0 0 3px rgba(47, 158, 65, 0.25);
+}
+
+/* ---------- 2. Reset & base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+h2 {
+  font-size: 1.15rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* Foco visível e bonito para todos os elementos interativos */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- 3. Ícones (SVG inline estilo Lucide) ---------- */
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon--sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ---------- 4. Botões ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.55rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn .icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: var(--shadow-xs);
+}
+.btn--primary:not(:disabled):hover {
+  background: var(--primary-hover);
+  color: var(--primary-contrast); /* reafirma branco sobre `a:hover` global */
+  box-shadow: var(--shadow-sm);
+}
+.btn--primary:not(:disabled):active {
+  background: var(--primary-active);
+}
+
+.btn--secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.btn--secondary:not(:disabled):hover {
+  background: var(--surface-muted);
+  border-color: var(--text-subtle);
+  color: var(--text);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn--danger:not(:disabled):hover {
+  background: var(--danger-hover);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.btn--ghost:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.btn--sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+/* ---------- 5. Badges / pílulas de status ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.badge::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge--success {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+.badge--warning {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+.badge--danger {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+.badge--info {
+  background: var(--info-soft);
+  color: var(--info-text);
+}
+.badge--neutral {
+  background: var(--neutral-soft);
+  color: var(--neutral-text);
+}
+
+/* Mapeamento StatusCrise -> cor */
+.badge--aberta { background: var(--info-soft); color: var(--info-text); }
+.badge--em_andamento { background: var(--warning-soft); color: var(--warning-text); }
+.badge--resolvida { background: var(--success-soft); color: var(--success-text); }
+.badge--encerrada { background: var(--neutral-soft); color: var(--neutral-text); }
+
+/* Mapeamento NivelCriticidade -> cor */
+.badge--nivel-baixo { background: var(--success-soft); color: var(--success-text); }
+.badge--nivel-medio { background: var(--info-soft); color: var(--info-text); }
+.badge--nivel-alto { background: var(--warning-soft); color: var(--warning-text); }
+.badge--nivel-critico { background: var(--danger-soft); color: var(--danger-text); }
+
+/* Pílula de perfil do usuário (ADMIN / COMUM) */
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: var(--radius-full);
+  color: var(--neutral-text);
+  background: var(--neutral-soft);
+  border: 1px solid var(--border);
+}
+.role-chip--admin {
+  color: var(--primary-active);
+  background: var(--primary-soft);
+  border-color: transparent;
+}
+
+/* ---------- 6. Layout de página (conteúdo autenticado) ----------
+   `.main section` recebe o mesmo ritmo, então telas ainda não
+   refatoradas já herdam espaçamento e largura máxima. */
+.page,
+.main section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.page__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.page__subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.page__actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* ---------- 7. Cards ---------- */
+.card,
+.card-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+.card--pad {
+  padding: var(--space-5);
+}
+
+/* ---------- 8. Tabelas (raw <table>, .list__table e .data-table convergem) ---------- */
+.main table,
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  font-size: 0.9rem;
+}
+
+.main th,
+.data-table th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-muted);
+  color: var(--neutral-text); /* AA: 6.9:1 sobre surface-muted */
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.main td,
+.data-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+/* Zebra + hover suave */
+.main tbody tr,
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+.main tbody tr:nth-child(even),
+.data-table tbody tr:nth-child(even) {
+  background: rgba(241, 245, 249, 0.5);
+}
+.main tbody tr:hover,
+.data-table tbody tr:hover {
+  background: var(--primary-soft);
+}
+.main tbody tr:last-child td,
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cell-id {
+  color: var(--text-muted); /* AA: 4.8:1 sobre branco */
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+/* ---------- 9. Formulários ---------- */
+.main label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.main input,
+.main select,
+.main textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+.main input,
+.main select {
+  height: 44px;
+  padding: 0 0.85rem;
+}
+.main textarea {
+  min-height: 110px;
+  padding: 0.65rem 0.85rem;
+  resize: vertical;
+}
+.main input::placeholder,
+.main textarea::placeholder {
+  color: var(--text-subtle);
+}
+.main input:hover,
+.main select:hover,
+.main textarea:hover {
+  border-color: var(--border-strong);
+}
+.main input:focus,
+.main select:focus,
+.main textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--ring);
+}
+
+/* Grupos de campo em formulários "crus" e refatorados */
+.main form > div,
+.field {
+  margin-bottom: var(--space-4);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.form-grid .field--full,
+.form-grid .form-group--full,
+.field--full,
+.form-group--full {
+  grid-column: 1 / -1;
+}
+.form-grid > div,
+.form-grid .field,
+.form-grid .form-group {
+  margin-bottom: 0;
+}
+
+.form__actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-2);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- 9b. Design System — classes nomeadas ----------
+   .card-panel / .form-group / .form-label / .form-control / .btn-primary.
+   Funcionam dentro e fora de `.main`; os seletores `label.form-label`
+   e `*.form-control` empatam com `.main label`/`.main input` e vencem
+   por ordem de origem, garantindo a especificação do design. */
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-label,
+label.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.form-control,
+input.form-control,
+select.form-control,
+textarea.form-control {
+  width: 100%;
+  height: 44px;
+  padding: 0 0.9rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+textarea.form-control {
+  height: auto;
+  min-height: 110px;
+  padding: 0.7rem 0.9rem;
+  resize: vertical;
+}
+.form-control::placeholder {
+  color: var(--text-subtle);
+}
+.form-control:hover {
+  border-color: var(--border-strong);
+}
+.form-control:focus,
+.form-control:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--ring);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 12px 24px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--primary-contrast);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+  box-shadow: var(--shadow-xs);
+}
+.btn-primary:not(:disabled):hover {
+  background: var(--primary-hover);
+  color: var(--primary-contrast); /* reafirma branco sobre `a:hover` global */
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:not(:disabled):active {
+  background: var(--primary-active);
+}
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary .icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+/* Seção de formulário estilo Figma: cabeçalho com ícone + título + subtítulo */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6);
+}
+.form-section + .form-section {
+  margin-top: var(--space-5);
+}
+/* gap já cuida do ritmo vertical dentro da seção */
+.form-section > .form-group {
+  margin-bottom: 0;
+}
+.form-section .form__actions {
+  margin-top: 0;
+}
+.form-section__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.form-section__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.form-section__icon .icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.form-section__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.form-section__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.form-section__subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ---------- 10. Estados: alertas, loading, vazio ---------- */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+.alert--error {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+.state {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty {
+  text-align: center;
+  color: var(--text-muted); /* AA: 4.8:1 sobre branco */
+  padding: var(--space-6);
+}
+
+/* ---------- 11. Utilitários ---------- */
+.muted {
+  color: var(--text-muted);
+}
+.link {
+  font-weight: 600;
+}
+.link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 12. Detalhe da crise ---------- */
+.detail__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.detail__badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.detail__desc {
+  color: var(--text-muted);
+  margin-bottom: var(--space-5);
+  line-height: 1.6;
+}
+.detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+
+  dt {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted); /* AA: 4.8:1 sobre branco */
+    margin-bottom: var(--space-1);
+  }
+  dd {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+}
+
+/* ---------- 13. Timeline de ações ---------- */
+.timeline-section h2 {
+  margin-bottom: var(--space-4);
+}
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.timeline__item {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  padding-left: var(--space-2);
+}
+.timeline__marker {
+  position: relative;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.timeline__item:not(:last-child) .timeline__marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  width: 2px;
+  height: calc(100% + var(--space-4));
+  background: var(--border);
+}
+.timeline__content {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-4);
+}
+.timeline__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  flex-wrap: wrap;
+}
+.timeline__date,
+.timeline__meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.timeline__desc {
+  color: var(--text);
+  margin-bottom: var(--space-1);
+}
+
+/* ---------- 14. Acessibilidade / motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

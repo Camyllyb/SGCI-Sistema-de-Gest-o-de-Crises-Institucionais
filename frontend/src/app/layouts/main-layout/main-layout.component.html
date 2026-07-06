@@ -1,0 +1,172 @@
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="sidebar__logo" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+      </span>
+      <span class="sidebar__brand-text">
+        <strong>SGCI</strong>
+        <small>Sistema de Gestão</small>
+      </span>
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Navegação principal">
+      <p class="sidebar__group-label">Principal</p>
+
+      <a routerLink="/dashboard" routerLinkActive="active" class="sidebar__link">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="9" rx="1" />
+          <rect x="14" y="3" width="7" height="5" rx="1" />
+          <rect x="14" y="12" width="7" height="9" rx="1" />
+          <rect x="3" y="16" width="7" height="5" rx="1" />
+        </svg>
+        <span>Painel</span>
+      </a>
+      <a
+        routerLink="/crises"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="sidebar__link"
+      >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+        <span>Crises</span>
+      </a>
+      <a *appRole="['ADMIN']" routerLink="/crises/nova" routerLinkActive="active" class="sidebar__link">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
+        <span>Nova Crise</span>
+      </a>
+      <a routerLink="/relatorios" routerLinkActive="active" class="sidebar__link">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+          <path d="M16 13H8M16 17H8M10 9H8" />
+        </svg>
+        <span>Relatórios</span>
+      </a>
+
+      <ng-container *appRole="['ADMIN']">
+        <p class="sidebar__group-label">Administração</p>
+
+        <a routerLink="/departamentos" routerLinkActive="active" class="sidebar__link">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+            <path d="M10 6h4M10 10h4M10 14h4M10 18h4" />
+          </svg>
+          <span>Departamentos</span>
+        </a>
+        <a routerLink="/tipos-crise" routerLinkActive="active" class="sidebar__link">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+            />
+            <circle cx="7.5" cy="7.5" r="1.5" />
+          </svg>
+          <span>Tipos de Crise</span>
+        </a>
+        <a routerLink="/cenarios" routerLinkActive="active" class="sidebar__link">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+            />
+            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+          </svg>
+          <span>Cenários de Crise</span>
+        </a>
+        <a routerLink="/campi" routerLinkActive="active" class="sidebar__link">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+            />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span>Campi</span>
+        </a>
+        <a routerLink="/instituicoes" routerLinkActive="active" class="sidebar__link">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="3" x2="21" y1="22" y2="22" />
+            <line x1="6" x2="6" y1="18" y2="11" />
+            <line x1="10" x2="10" y1="18" y2="11" />
+            <line x1="14" x2="14" y1="18" y2="11" />
+            <line x1="18" x2="18" y1="18" y2="11" />
+            <polygon points="12 2 20 7 4 7" />
+          </svg>
+          <span>Instituições</span>
+        </a>
+        <a routerLink="/auditoria" routerLinkActive="active" class="sidebar__link">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 3v5h5" />
+            <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+            <path d="M12 7v5l4 2" />
+          </svg>
+          <span>Auditoria</span>
+        </a>
+      </ng-container>
+    </nav>
+
+    @if (user(); as currentUser) {
+      <div class="sidebar__user">
+        <span class="sidebar__avatar" aria-hidden="true">{{ currentUser.name.charAt(0) }}</span>
+        <span class="sidebar__user-info">
+          <strong>{{ currentUser.name }}</strong>
+          <small>{{ currentUser.email }}</small>
+        </span>
+      </div>
+    }
+  </aside>
+
+  <div class="content">
+    <header class="header">
+      <nav class="header__crumbs" aria-label="Trilha de navegação">
+        <span class="header__crumb">SGCI</span>
+        @for (crumb of crumbs(); track $index) {
+          <svg class="header__sep icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+          <span class="header__crumb" [class.header__crumb--current]="$last">{{ crumb }}</span>
+        }
+      </nav>
+
+      <div class="header__actions">
+        @if (user(); as currentUser) {
+          <span class="header__user">
+            <span class="header__avatar" aria-hidden="true">{{ currentUser.name.charAt(0) }}</span>
+            <span class="header__user-name">{{ currentUser.name }}</span>
+            <span
+              class="role-chip"
+              [class.role-chip--admin]="currentUser.perfil === 'ADMIN'"
+              [title]="'Perfil: ' + currentUser.perfil"
+            >
+              {{ currentUser.perfil }}
+            </span>
+          </span>
+        }
+        <button class="btn btn--secondary btn--sm" type="button" (click)="onLogout()">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" x2="9" y1="12" y2="12" />
+          </svg>
+          <span>Sair</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <router-outlet />
+    </main>
+  </div>
+</div>
