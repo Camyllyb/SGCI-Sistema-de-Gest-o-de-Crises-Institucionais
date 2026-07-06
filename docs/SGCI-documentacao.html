@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SGCI — Documentação Técnica</title>
+<style>
+  :root{
+    --primary:#2f9e41; --primary-dark:#1f6e2d; --ink:#1b2430; --muted:#5b6672;
+    --line:#d9dee5; --bg-soft:#f4f6f9; --code-bg:#f5f7fa; --code-ink:#243447;
+    --admin:#b0341d; --info:#2563eb; --warn:#b26a00;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); font-size:12px; line-height:1.55; margin:0;
+  }
+  .page{padding:0 6mm;}
+  h1,h2,h3,h4{color:var(--primary-dark); line-height:1.25; margin:1.4em 0 .5em;}
+  h1{font-size:26px;} h2{font-size:19px; border-bottom:2px solid var(--primary); padding-bottom:4px; margin-top:1.8em;}
+  h3{font-size:15px; color:var(--ink);} h4{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+  p{margin:.5em 0;}
+  code{font-family:"Cascadia Code",Consolas,"Courier New",monospace; background:var(--code-bg);
+    padding:1px 5px; border-radius:4px; font-size:11px; color:var(--code-ink);}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-left:4px solid var(--primary);
+    border-radius:6px; padding:10px 12px; overflow:auto; font-size:10.5px; line-height:1.45;}
+  pre code{background:none; padding:0; font-size:inherit;}
+  table{width:100%; border-collapse:collapse; margin:.6em 0; font-size:10.5px;}
+  th,td{border:1px solid var(--line); padding:5px 7px; text-align:left; vertical-align:top;}
+  th{background:var(--primary); color:#fff; font-weight:600;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  .badge{display:inline-block; padding:1px 7px; border-radius:20px; font-size:9.5px; font-weight:700; color:#fff;}
+  .b-admin{background:var(--admin);} .b-auth{background:var(--info);} .b-public{background:var(--muted);} .b-all{background:var(--primary);}
+  .lead{font-size:13px; color:var(--muted);}
+  ul,ol{margin:.4em 0 .6em; padding-left:20px;} li{margin:.15em 0;}
+  .cover{height:245mm; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+    background:linear-gradient(160deg,#f4faf5,#e6f3e9); border-radius:14px; margin:4mm 0; page-break-after:always;}
+  .cover .logo{width:92px; height:92px; border-radius:22px; background:var(--primary);
+    display:flex; align-items:center; justify-content:center; margin-bottom:22px; box-shadow:0 10px 24px rgba(47,158,65,.35);}
+  .cover .logo svg{width:52px; height:52px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  .cover h1{font-size:44px; margin:0; letter-spacing:2px;}
+  .cover .sub{font-size:16px; color:var(--muted); margin-top:6px;}
+  .cover .meta{margin-top:34px; font-size:12px; color:var(--muted);}
+  .cover .chip{display:inline-block; margin:4px; padding:4px 12px; background:#fff; border:1px solid var(--line);
+    border-radius:20px; font-size:11px; color:var(--ink);}
+  .toc{page-break-after:always;}
+  .toc ol{font-size:13px; line-height:2;}
+  .callout{background:#fff8e6; border:1px solid #f0d98a; border-left:4px solid var(--warn);
+    padding:8px 12px; border-radius:6px; margin:.8em 0; font-size:11px;}
+  .note{background:#eef4ff; border:1px solid #cddbfa; border-left:4px solid var(--info);
+    padding:8px 12px; border-radius:6px; margin:.8em 0; font-size:11px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .card{border:1px solid var(--line); border-radius:8px; padding:8px 11px; background:#fff;}
+  .card h4{margin:.1em 0 .4em; color:var(--primary-dark);}
+  .kpi{font-size:10px; color:var(--muted);}
+  section{page-break-inside:auto;}
+  h2{page-break-after:avoid;} h3{page-break-after:avoid;}
+  pre,table{page-break-inside:avoid;}
+  .pb{page-break-before:always;}
+  .mono-sm{font-family:Consolas,monospace; font-size:10px;}
+  .tree{background:var(--code-bg); border:1px solid var(--line); border-radius:6px; padding:10px 12px;
+    font-family:Consolas,monospace; font-size:10px; line-height:1.5; white-space:pre;}
+  footer{margin-top:20px; border-top:1px solid var(--line); padding-top:8px; color:var(--muted); font-size:10px; text-align:center;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ============ CAPA ============ -->
+<div class="cover">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+  </div>
+  <h1>SGCI</h1>
+  <div class="sub">Sistema de Gestão de Crises Institucionais</div>
+  <div class="sub" style="font-size:13px;">Documentação Técnica — Arquitetura e Código</div>
+  <div class="meta">
+    <div>
+      <span class="chip">Quarkus 3.37 · Java 21</span>
+      <span class="chip">Angular 20.3</span>
+      <span class="chip">PostgreSQL + Flyway</span>
+      <span class="chip">JWT via Cookie</span>
+    </div>
+    <div style="margin-top:18px;">Gerado em 06/07/2026</div>
+  </div>
+</div>
+
+<!-- ============ SUMÁRIO ============ -->
+<div class="toc">
+<h2>Sumário</h2>
+<ol>
+  <li>Visão geral do sistema</li>
+  <li>Arquitetura e stack tecnológica</li>
+  <li>Estrutura de diretórios</li>
+  <li>Modelo de domínio (entidades e enums)</li>
+  <li>Banco de dados e migrações Flyway</li>
+  <li>Backend — camadas (Controller → Service → Repository)</li>
+  <li>Backend — mapa completo de endpoints REST</li>
+  <li>Segurança, autenticação e autoria (JWT + auditoria)</li>
+  <li>Regras de negócio principais</li>
+  <li>Frontend — arquitetura Angular</li>
+  <li>Frontend — rotas, guards e interceptors</li>
+  <li>Frontend — funcionalidades (features)</li>
+  <li>Fluxos de ponta a ponta</li>
+  <li>Como executar o projeto</li>
+</ol>
+</div>
+
+<!-- ============ 1. VISÃO GERAL ============ -->
+<section>
+<h2>1. Visão geral do sistema</h2>
+<p class="lead">O <strong>SGCI (Sistema de Gestão de Crises Institucionais)</strong> é uma aplicação web
+full-stack para registrar, acompanhar e encerrar crises em uma instituição de ensino (campi,
+departamentos), documentar as ações tomadas durante cada crise e emitir relatórios finais, com
+trilha de auditoria de todas as alterações.</p>
+
+<p>O sistema é dividido em dois projetos independentes que se comunicam por HTTP/JSON:</p>
+<div class="grid2">
+  <div class="card">
+    <h4>Backend — API REST</h4>
+    <p class="kpi">Quarkus (Java 21). Expõe endpoints REST, aplica regras de negócio,
+    persiste em PostgreSQL e cuida da autenticação por JWT em cookie HttpOnly.</p>
+    <p class="kpi"><code>groupId: br.com.crisismanagement</code><br><code>artifactId: crisis-management-api</code></p>
+  </div>
+  <div class="card">
+    <h4>Frontend — SPA</h4>
+    <p class="kpi">Angular 20 (100% standalone, com signals). Renderiza as telas,
+    valida sessão a cada navegação e consome a API. Servido em dev por <code>ng serve</code> na porta 4200.</p>
+  </div>
+</div>
+
+<h3>Conceitos do domínio</h3>
+<table>
+<tr><th>Conceito</th><th>Descrição</th></tr>
+<tr><td><b>Crise</b></td><td>Ocorrência central. Tem título, descrição, nível de criticidade, status (ciclo de vida) e vínculos a tipo, campus, cenário e departamento.</td></tr>
+<tr><td><b>Ação de crise</b></td><td>Registro cronológico do que foi feito durante a crise (contenção, comunicação, monitoramento, resolução).</td></tr>
+<tr><td><b>Relatório de crise</b></td><td>Documento final único por crise, permitido só após a crise estar resolvida/encerrada.</td></tr>
+<tr><td><b>Dados de referência</b></td><td>Instituições, Campi, Departamentos, Tipos de Crise e Cenários — cadastros de apoio usados nos formulários.</td></tr>
+<tr><td><b>Auditoria</b></td><td>Log imutável de toda operação de modificação (quem, o quê, quando, resultado HTTP).</td></tr>
+<tr><td><b>Usuário / Perfil</b></td><td>Contas com perfil <code>ADMIN</code> (acesso total) ou <code>COMUM</code> (acesso restrito ao próprio departamento).</td></tr>
+</table>
+</section>
+
+<!-- ============ 2. ARQUITETURA ============ -->
+<section class="pb">
+<h2>2. Arquitetura e stack tecnológica</h2>
+
+<h3>Padrão arquitetural</h3>
+<p>O backend segue uma <strong>arquitetura em camadas</strong> clássica, com nomes que o próprio código
+documenta como <em>BO (Business Object)</em> para os services e <em>DAO</em> para os repositories:</p>
+<div class="tree">Controller (JAX-RS / REST)   →  recebe HTTP, valida DTO, aplica @RolesAllowed
+      ↓
+Service (BO — regra de negócio) →  orquestra, aplica regras, transações
+      ↓
+Repository (DAO — Panache)      →  acesso a dados / queries
+      ↓
+Entity (Hibernate ORM Panache)  →  mapeamento objeto-relacional
+      ↓
+PostgreSQL (schema versionado por Flyway)</div>
+
+<p>A comunicação com o exterior usa <strong>DTOs</strong> (records Java): <code>*Request</code> para entrada
+(com Bean Validation) e <code>*Response</code> para saída — as entidades JPA nunca são expostas diretamente.</p>
+
+<h3>Stack do backend</h3>
+<table>
+<tr><th>Tecnologia</th><th>Versão</th><th>Papel</th></tr>
+<tr><td>Java</td><td>21</td><td>Linguagem (records, switch expressions, etc.)</td></tr>
+<tr><td>Quarkus</td><td>3.37.1</td><td>Framework (BOM <code>quarkus-bom</code>)</td></tr>
+<tr><td>quarkus-rest + rest-jackson</td><td>—</td><td>Endpoints REST (JAX-RS) e serialização JSON</td></tr>
+<tr><td>Hibernate ORM + Panache</td><td>—</td><td>ORM com repositórios ativos</td></tr>
+<tr><td>quarkus-jdbc-postgresql</td><td>—</td><td>Driver do banco</td></tr>
+<tr><td>Flyway</td><td>—</td><td>Versionamento/migração de schema</td></tr>
+<tr><td>SmallRye JWT (+ build)</td><td>—</td><td>Emissão e verificação de JWT</td></tr>
+<tr><td>Elytron Security Common</td><td>—</td><td><code>BcryptUtil</code> para hash de senha</td></tr>
+<tr><td>Hibernate Validator</td><td>—</td><td>Bean Validation nos DTOs</td></tr>
+<tr><td>JUnit 5 + REST-assured</td><td>—</td><td>Testes (escopo de teste)</td></tr>
+</table>
+
+<h3>Stack do frontend</h3>
+<table>
+<tr><th>Tecnologia</th><th>Versão</th><th>Papel</th></tr>
+<tr><td>Angular</td><td>20.3</td><td>Framework SPA, 100% standalone (sem NgModules)</td></tr>
+<tr><td>TypeScript</td><td>5.9</td><td>Linguagem</td></tr>
+<tr><td>RxJS</td><td>7.8</td><td>Observables (HTTP, streams de navegação)</td></tr>
+<tr><td>@angular/build</td><td>20.3</td><td>Novo application builder</td></tr>
+<tr><td>SCSS</td><td>—</td><td>Design system próprio (sem Material/Bootstrap)</td></tr>
+<tr><td>Signals</td><td>—</td><td>Estado reativo (<code>signal</code>, <code>computed</code>, <code>effect</code>)</td></tr>
+<tr><td>Karma + Jasmine</td><td>—</td><td>Testes</td></tr>
+</table>
+<p>Padrões modernos usados em todo o front: <code>inject()</code> (sem injeção por construtor),
+control-flow <code>@if</code>/<code>@for</code>, <code>loadComponent</code> (lazy loading), <code>takeUntilDestroyed()</code>
+e diretiva estrutural com <code>input.required()</code>.</p>
+</section>
+
+<!-- ============ 3. ESTRUTURA ============ -->
+<section class="pb">
+<h2>3. Estrutura de diretórios</h2>
+<div class="grid2">
+<div>
+<h4>Backend (<code>src/main</code>)</h4>
+<div class="tree">br/com/crisismanagement/
+├─ config/
+│   └─ DataSeeder.java        (usuários iniciais)
+├─ controllers/               (11 controllers REST)
+├─ dto/                       (Request/Response records)
+├─ entities/
+│   ├─ enums/                 (4 enums de domínio)
+│   └─ *.java                 (9 entidades)
+├─ exceptions/                (exceção + mapper)
+├─ repositories/              (10 repositórios Panache)
+├─ security/
+│   ├─ AuthCookieFactory
+│   └─ AuditoriaLogFilter
+└─ services/                  (11 services / BOs)
+
+resources/
+├─ application.properties
+├─ db/migration/  V1 … V8     (Flyway)
+├─ privateKey.pem / publicKey.pem
+└─ docker/ Dockerfile.*</div>
+</div>
+<div>
+<h4>Frontend (<code>frontend/src</code>)</h4>
+<div class="tree">app/
+├─ app.ts / app.config.ts / app.routes.ts
+├─ core/
+│   ├─ config/api.config.ts
+│   ├─ guards/  auth · admin
+│   ├─ interceptors/ credentials
+│   ├─ directives/ role
+│   ├─ models/ auth · user
+│   └─ services/ auth.service
+├─ layouts/
+│   └─ main-layout/           (casca autenticada)
+└─ features/
+    ├─ auth/        (login)
+    ├─ dashboard/
+    ├─ crises/      (list · form · detail)
+    ├─ relatorios/  (list · form)
+    ├─ auditoria/   (list, admin)
+    ├─ departamentos/ tipos-crise/
+    ├─ instituicoes/  campi/  cenarios/
+    (cada feature: models · pages · services)</div>
+</div>
+</div>
+</section>
+
+<!-- ============ 4. DOMÍNIO ============ -->
+<section class="pb">
+<h2>4. Modelo de domínio (entidades e enums)</h2>
+<p>Todas as entidades estendem <code>PanacheEntityBase</code> com campos públicos (padrão Panache) e id
+<code>@GeneratedValue(IDENTITY)</code>. Os relacionamentos são modelados por <strong>chaves estrangeiras
+como <code>Long</code></strong> (ex.: <code>tipoCriseId</code>), e não por associações JPA <code>@ManyToOne</code> —
+uma escolha de design que mantém as entidades simples e o controle das joins no serviço.</p>
+
+<h3>Enums</h3>
+<table>
+<tr><th>Enum</th><th>Valores</th><th>Uso</th></tr>
+<tr><td><code>NivelCriticidade</code></td><td>BAIXO · MEDIO · ALTO · CRITICO</td><td>Gravidade da crise</td></tr>
+<tr><td><code>StatusCrise</code></td><td>ABERTA · EM_ANDAMENTO · RESOLVIDA · ENCERRADA</td><td>Ciclo de vida da crise</td></tr>
+<tr><td><code>TipoAcao</code></td><td>CONTENCAO · COMUNICACAO · MONITORAMENTO · RESOLUCAO</td><td>Categoria da ação registrada</td></tr>
+<tr><td><code>PerfilUsuario</code></td><td>ADMIN · COMUM</td><td>Papel de acesso — o nome vira a <em>role</em> no claim <code>groups</code> do JWT</td></tr>
+</table>
+
+<h3>Entidades</h3>
+<table>
+<tr><th>Entidade / Tabela</th><th>Campos principais</th></tr>
+<tr><td><b>User</b><br><code>users</code></td><td>id, name, email (único), password (bcrypt), <b>perfil</b> (enum), departamentoId, active, createdAt</td></tr>
+<tr><td><b>Crise</b><br><code>crises</code></td><td>id, titulo, descricao, <b>status</b>, <b>nivel</b>, tipoCriseId, campusId, cenarioId (opcional), departamentoId, active, createdAt</td></tr>
+<tr><td><b>AcaoCrise</b><br><code>acoes_crise</code></td><td>id, descricao, <b>tipo</b> (TipoAcao), criseId, usuarioId, createdAt</td></tr>
+<tr><td><b>RelatorioCrise</b><br><code>relatorios_crise</code></td><td>id, titulo, resumoOcorrido, impactosIdentificados, acoesRealizadas, resultadoFinal, recomendacoes, criseId (<b>único</b>), usuarioId, createdAt</td></tr>
+<tr><td><b>Instituicao</b><br><code>instituicoes</code></td><td>id, nome, sigla, active, createdAt</td></tr>
+<tr><td><b>Campus</b><br><code>campi</code></td><td>id, nome, instituicaoId (FK), active, createdAt</td></tr>
+<tr><td><b>Departamento</b><br><code>departamentos</code></td><td>id, nome, sigla, active, createdAt</td></tr>
+<tr><td><b>TipoCrise</b><br><code>tipos_crise</code></td><td>id, nome, descricao, active, createdAt</td></tr>
+<tr><td><b>CenarioCrise</b><br><code>cenarios_crise</code></td><td>id, descricao, nivelSugerido, tipoCriseId (FK), departamentoId (FK), active, createdAt</td></tr>
+<tr><td><b>AuditoriaLog</b><br><code>auditoria_logs</code></td><td>id, usuarioId, usuarioNome, acao, metodoHttp, entidadeAfetada, recurso, statusResposta, dataHora</td></tr>
+</table>
+
+<h4>Exemplo de entidade — <code>Crise.java</code></h4>
+<pre><code>@Entity @Table(name = "crises")
+public class Crise extends PanacheEntityBase {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
+    @Column(nullable = false, length = 200) public String titulo;
+    @Column(nullable = false, length = 1000) public String descricao;
+    @Enumerated(EnumType.STRING) public StatusCrise status;
+    @Enumerated(EnumType.STRING) public NivelCriticidade nivel;
+    public Long tipoCriseId;   public Long campusId;
+    public Long cenarioId;     public Long departamentoId;   // FKs como Long
+    public boolean active;     public LocalDateTime createdAt;
+}</code></pre>
+</section>
+
+<!-- ============ 5. BANCO ============ -->
+<section class="pb">
+<h2>5. Banco de dados e migrações Flyway</h2>
+<p>O schema é gerenciado 100% por Flyway (<code>quarkus.flyway.migrate-at-start=true</code>); o Hibernate roda
+em modo <code>validate</code> (não altera tabelas, só confere que batem com as entidades). As migrações rodam em
+ordem na inicialização.</p>
+<table>
+<tr><th>Migração</th><th>O que cria / altera</th></tr>
+<tr><td><code>V1</code></td><td>Tabela <b>users</b> (id, name, email único, password, active, created_at).</td></tr>
+<tr><td><code>V2</code></td><td>Tabelas <b>departamentos</b> e <b>tipos_crise</b>. Semeia 1 departamento ("Coordenação de TI"/CTI) e 1 tipo ("Tecnologia").</td></tr>
+<tr><td><code>V3</code></td><td>Tabelas <b>instituicoes</b>, <b>campi</b> (FK → instituicoes) e <b>cenarios_crise</b> (FKs → tipos_crise, departamentos).</td></tr>
+<tr><td><code>V4</code></td><td>Tabela <b>crises</b> com FKs para tipos_crise, campi, cenarios_crise (nullable) e departamentos.</td></tr>
+<tr><td><code>V5</code></td><td>Tabela <b>acoes_crise</b> (FKs → crises, users).</td></tr>
+<tr><td><code>V6</code></td><td>Tabela <b>relatorios_crise</b> — <code>crise_id</code> com constraint <b>UNIQUE</b> (1 relatório por crise).</td></tr>
+<tr><td><code>V7</code></td><td>Adiciona colunas <b>perfil</b> (default 'COMUM') e <b>departamento_id</b> em users; promove <code>admin@crisis.local</code> a ADMIN.</td></tr>
+<tr><td><code>V8</code></td><td>Tabela <b>auditoria_logs</b> + índices por <code>data_hora DESC</code> e por <code>entidade_afetada</code>.</td></tr>
+</table>
+<div class="note"><b>Seed de aplicação (DataSeeder):</b> na inicialização cria dois usuários se não existirem —
+<code>admin@crisis.local</code> / <code>Admin@123</code> (perfil ADMIN) e
+<code>usuario@crisis.local</code> / <code>Comum@123</code> (perfil COMUM, vinculado ao 1º departamento).
+As senhas são gravadas com hash BCrypt.</div>
+</section>
+
+<!-- ============ 6. BACKEND CAMADAS ============ -->
+<section class="pb">
+<h2>6. Backend — camadas (Controller → Service → Repository)</h2>
+
+<h3>Controllers (11)</h3>
+<p>Recebem HTTP, validam o DTO com <code>@Valid</code>, aplicam a segurança declarativa
+(<code>@Authenticated</code> / <code>@RolesAllowed</code>) e delegam ao service. Padrão base do resource de crises:</p>
+<pre><code>@Path("/api/crises") @Authenticated
+@Consumes(APPLICATION_JSON) @Produces(APPLICATION_JSON)
+public class CriseController {
+    @Inject CriseService criseService;
+
+    @GET public List&lt;CriseResponse&gt; listAll() { ... }
+    @POST @RolesAllowed("ADMIN")
+    public Response create(@Valid CriseRequest request) { ... }
+    @PATCH @Path("/{id}/status") @RolesAllowed("ADMIN")
+    public CriseResponse changeStatus(@PathParam("id") Long id, @Valid StatusUpdateRequest r) { ... }
+}</code></pre>
+
+<h3>Services / BOs (11)</h3>
+<table>
+<tr><th>Service</th><th>Responsabilidades-chave</th></tr>
+<tr><td><code>AuthService</code></td><td>Valida credenciais (BCrypt), emite JWT assinado, expõe usuário atual (<code>/me</code>).</td></tr>
+<tr><td><code>CriseService</code></td><td>CRUD de crises, transição de status (bloqueia crise ENCERRADA), listagem/registro de ações com regra de departamento.</td></tr>
+<tr><td><code>RelatorioCriseService</code></td><td>Cria relatório só para crise RESOLVIDA/ENCERRADA e apenas 1 por crise; grava autor a partir do JWT.</td></tr>
+<tr><td><code>UsuarioService</code></td><td>CRUD administrativo: unicidade de e-mail, hash de senha, senha opcional na edição, impede auto-desativação.</td></tr>
+<tr><td><code>AuditoriaService</code></td><td>Registra logs (transação <code>REQUIRES_NEW</code>), busca com filtros e monta <em>facets</em> (valores distintos).</td></tr>
+<tr><td><code>DashboardService</code></td><td>Agrega contadores de crises por status e nível crítico.</td></tr>
+<tr><td><code>Campus/Departamento/Instituicao/TipoCrise/CenarioCrise Service</code></td><td>CRUD dos dados de referência com <em>soft-delete</em> (desativa em vez de apagar).</td></tr>
+</table>
+
+<h3>Repositories / DAOs (10)</h3>
+<p>Implementam <code>PanacheRepository&lt;T&gt;</code>. Exemplos de queries customizadas:</p>
+<table>
+<tr><th>Repository</th><th>Métodos além do CRUD</th></tr>
+<tr><td><code>CriseRepository</code></td><td><code>listAllOrdered()</code> (order by createdAt desc), <code>countByStatus()</code>, <code>countByNivel()</code></td></tr>
+<tr><td><code>UserRepository</code></td><td><code>findByEmail()</code>, <code>listAllOrdered()</code></td></tr>
+<tr><td><code>RelatorioCriseRepository</code></td><td><code>existsByCrise()</code>, <code>listAllOrdered()</code></td></tr>
+<tr><td><code>AcaoCriseRepository</code></td><td><code>listByCrise()</code></td></tr>
+<tr><td><code>AuditoriaRepository</code></td><td><code>search(entidade, acao, usuario)</code> (filtros dinâmicos), <code>distinctEntidades/Acoes/Usuarios()</code></td></tr>
+</table>
+
+<h3>DTOs</h3>
+<p>Records por par <code>Request</code>/<code>Response</code>. Os <code>Request</code> carregam Bean Validation; os
+<code>Response</code> têm um método fábrica <code>from(entidade)</code>. Exemplo:</p>
+<pre><code>public record CriseRequest(
+    @NotBlank @Size(max=200) String titulo,
+    @NotBlank @Size(max=1000) String descricao,
+    @NotNull NivelCriticidade nivel,
+    @NotNull Long tipoCriseId, @NotNull Long campusId,
+    Long cenarioId,                 // opcional
+    @NotNull Long departamentoId) {}</code></pre>
+<p>Categorias de DTO presentes: Auth (Login/User), Crise, AcaoCrise, RelatorioCrise, Usuario, Campus,
+Departamento, Instituicao, TipoCrise, CenarioCrise, Dashboard, Auditoria (Log + Facets) e
+<code>StatusUpdateRequest</code>.</p>
+</section>
+
+<!-- ============ 7. ENDPOINTS ============ -->
+<section class="pb">
+<h2>7. Backend — mapa completo de endpoints REST</h2>
+<p>Legenda de acesso:
+<span class="badge b-public">PÚBLICO</span>
+<span class="badge b-auth">AUTENTICADO</span>
+<span class="badge b-all">ADMIN+COMUM</span>
+<span class="badge b-admin">SÓ ADMIN</span></p>
+
+<table>
+<tr><th>Método</th><th>Rota</th><th>Acesso</th><th>Função</th></tr>
+<tr><td>POST</td><td><code>/auth/login</code></td><td><span class="badge b-public">PÚBLICO</span></td><td>Autentica e devolve cookie <code>jwt</code></td></tr>
+<tr><td>POST</td><td><code>/auth/logout</code></td><td><span class="badge b-auth">AUTH</span></td><td>Expira o cookie</td></tr>
+<tr><td>GET</td><td><code>/auth/me</code></td><td><span class="badge b-auth">AUTH</span></td><td>Usuário da sessão</td></tr>
+<tr><td>GET</td><td><code>/api/dashboard/resumo</code></td><td><span class="badge b-auth">AUTH</span></td><td>Indicadores agregados</td></tr>
+<tr><td>GET</td><td><code>/api/crises</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista crises</td></tr>
+<tr><td>GET</td><td><code>/api/crises/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Detalha crise</td></tr>
+<tr><td>POST</td><td><code>/api/crises</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Cria crise</td></tr>
+<tr><td>PATCH</td><td><code>/api/crises/{id}/status</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Avança status</td></tr>
+<tr><td>GET</td><td><code>/api/crises/{id}/acoes</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista ações da crise</td></tr>
+<tr><td>POST</td><td><code>/api/crises/{id}/acoes</code></td><td><span class="badge b-all">ADMIN+COMUM</span></td><td>Registra ação (COMUM só no seu depto.)</td></tr>
+<tr><td>GET</td><td><code>/api/relatorios</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista relatórios</td></tr>
+<tr><td>GET</td><td><code>/api/relatorios/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Detalha relatório</td></tr>
+<tr><td>POST</td><td><code>/api/relatorios</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Cria relatório (crise fechada, 1 por crise)</td></tr>
+<tr><td>GET</td><td><code>/api/usuarios</code>, <code>/{id}</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Lista / detalha usuários</td></tr>
+<tr><td>POST/PUT/DELETE</td><td><code>/api/usuarios</code>, <code>/{id}</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Cria / edita / desativa usuário</td></tr>
+<tr><td>GET</td><td><code>/api/auditoria</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Logs com filtros <code>?entidade&amp;acao&amp;usuario</code></td></tr>
+<tr><td>GET</td><td><code>/api/auditoria/facets</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Valores distintos para filtros</td></tr>
+<tr><td>GET</td><td><code>/api/{ref}</code>, <code>/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista / detalha dados de referência</td></tr>
+<tr><td>POST/PUT/DELETE</td><td><code>/api/{ref}</code>, <code>/{id}</code></td><td><span class="badge b-admin">ADMIN</span></td><td>CRUD dos dados de referência</td></tr>
+</table>
+<p class="kpi"><code>{ref}</code> ∈ <code>departamentos</code>, <code>tipos-crise</code>, <code>instituicoes</code>,
+<code>campi</code>, <code>cenarios</code>. O <code>DELETE</code> é <em>soft-delete</em> (marca <code>active=false</code>).</p>
+</section>
+
+<!-- ============ 8. SEGURANÇA ============ -->
+<section class="pb">
+<h2>8. Segurança, autenticação e auditoria</h2>
+
+<h3>Autenticação por JWT em cookie HttpOnly</h3>
+<p>O token <strong>não</strong> trafega no header <code>Authorization</code>: o Quarkus é configurado para lê-lo de
+um cookie chamado <code>jwt</code>. Isso protege contra XSS (o JS do browser não acessa o token).</p>
+<pre><code># application.properties
+mp.jwt.verify.issuer=https://crisis-management/issuer
+mp.jwt.verify.publickey.location=publicKey.pem     # verifica assinatura
+smallrye.jwt.sign.key.location=privateKey.pem       # assina no login
+mp.jwt.token.header=Cookie
+mp.jwt.token.cookie=jwt</code></pre>
+
+<h4>Fluxo de login</h4>
+<ol>
+  <li><code>AuthService.login()</code> busca o usuário por e-mail e confere <code>active</code> + <code>BcryptUtil.matches()</code>.</li>
+  <li>Emite JWT (RS256) com <code>subject</code>=id, claims <code>name</code>/<code>email</code>, <code>groups</code>=perfil e expiração de <strong>1 hora</strong>.</li>
+  <li><code>AuthController</code> devolve o token em cookie via <code>AuthCookieFactory</code>:
+  <code>HttpOnly</code>, <code>SameSite=LAX</code>, <code>path=/</code>, <code>maxAge=3600</code>.</li>
+  <li>O logout devolve o mesmo cookie com <code>maxAge=0</code> (expira).</li>
+</ol>
+<pre><code>return Jwt.issuer(issuer)
+    .subject(user.id.toString())
+    .claim("name", user.name).claim("email", user.email)
+    .groups(user.perfil.name())          // "ADMIN" ou "COMUM" → role
+    .expiresIn(TOKEN_EXPIRATION_SECONDS) // 3600s
+    .sign();</code></pre>
+
+<h3>Autorização</h3>
+<ul>
+  <li><code>@Authenticated</code> — exige sessão válida (qualquer perfil).</li>
+  <li><code>@RolesAllowed("ADMIN")</code> — restringe a administradores; a role vem do claim <code>groups</code>.</li>
+  <li><code>@RolesAllowed({"ADMIN","COMUM"})</code> — ambos os perfis (ex.: registrar ação).</li>
+  <li>Regra de negócio adicional no service: usuário <code>COMUM</code> só registra ação em crise do próprio departamento (senão <code>403 Forbidden</code>).</li>
+</ul>
+
+<h3>Auditoria automática — <code>AuditoriaLogFilter</code></h3>
+<p>Um <code>ContainerResponseFilter</code> (JAX-RS) intercepta <strong>toda resposta</strong> e, para métodos de
+modificação (POST/PUT/PATCH/DELETE) feitos por usuário autenticado, grava um log com quem
+(subject/nome do JWT), a ação (CRIAR/ATUALIZAR/EXCLUIR), o método, a entidade derivada do path, o recurso
+e o status HTTP da resposta. Requisições anônimas e chamadas a <code>auth</code>/<code>auditoria</code> são ignoradas.
+Falhas na auditoria nunca interrompem a requisição original.</p>
+<div class="note">O registro roda em transação separada (<code>@Transactional(REQUIRES_NEW)</code>) porque o filtro
+executa após a transação da requisição original já ter sido encerrada.</div>
+
+<h3>Tratamento de erros</h3>
+<p><code>InvalidCredentialsException</code> + <code>InvalidCredentialsExceptionMapper</code> convertem falha de login em
+<code>401</code> com corpo JSON (<code>LoginResponse</code>). Nos services, erros de regra usam exceções JAX-RS padrão:
+<code>NotFoundException</code> (404), <code>BadRequestException</code> (400), <code>ForbiddenException</code> (403).</p>
+
+<h3>CORS</h3>
+<p>Habilitado para o dev server Angular: origem <code>http://localhost:4200</code>, métodos GET/POST/PUT/DELETE/OPTIONS
+e <code>allow-credentials=true</code> (necessário para o cookie cruzar as origens).</p>
+</section>
+
+<!-- ============ 9. REGRAS ============ -->
+<section class="pb">
+<h2>9. Regras de negócio principais</h2>
+<table>
+<tr><th>Regra</th><th>Onde</th><th>Comportamento</th></tr>
+<tr><td>Ciclo de vida da crise</td><td>CriseService</td><td>Nasce <code>ABERTA</code>; avança ABERTA → EM_ANDAMENTO → RESOLVIDA → ENCERRADA. Crise <code>ENCERRADA</code> não muda mais de status.</td></tr>
+<tr><td>Ação por departamento</td><td>CriseService.addAcao</td><td>Perfil COMUM só registra ação em crise do seu <code>departamentoId</code> (senão 403).</td></tr>
+<tr><td>Relatório único e tardio</td><td>RelatorioCriseService</td><td>Só para crise RESOLVIDA/ENCERRADA; máx. 1 por crise (constraint UNIQUE + checagem).</td></tr>
+<tr><td>E-mail único</td><td>UsuarioService</td><td>Não permite dois usuários com o mesmo e-mail (criação e edição).</td></tr>
+<tr><td>Senha na edição</td><td>UsuarioService</td><td>Senha vazia/nula mantém a atual; preenchida gera novo hash BCrypt.</td></tr>
+<tr><td>Auto-proteção</td><td>UsuarioService.deactivate</td><td>Usuário não pode desativar a própria conta.</td></tr>
+<tr><td>Soft-delete</td><td>Services de referência</td><td>DELETE marca <code>active=false</code>, preservando histórico.</td></tr>
+</table>
+</section>
+
+<!-- ============ 10. FRONT ARQUITETURA ============ -->
+<section class="pb">
+<h2>10. Frontend — arquitetura Angular</h2>
+<p>Aplicação <strong>100% standalone</strong> (sem <code>AppModule</code>). Bootstrap em <code>main.ts</code> com
+<code>bootstrapApplication(App, appConfig)</code>; o componente raiz <code>App</code> só renderiza um
+<code>&lt;router-outlet&gt;</code>.</p>
+
+<h4>Providers globais — <code>app.config.ts</code></h4>
+<pre><code>providers: [
+  provideBrowserGlobalErrorListeners(),
+  provideZoneChangeDetection({ eventCoalescing: true }),
+  provideRouter(routes),
+  provideHttpClient(withInterceptors([credentialsInterceptor])),
+]</code></pre>
+
+<h3>Estado e estilo</h3>
+<ul>
+  <li><b>Signals</b> para estado de componente (<code>loading</code>, <code>error</code>, dados) e da sessão
+  (<code>currentUser</code>, <code>isAuthenticated = computed(...)</code>).</li>
+  <li><b>SCSS design system próprio</b> em <code>styles.scss</code>: tokens em <code>:root</code>, paleta verde
+  institucional (<code>--primary:#2f9e41</code>), classes utilitárias (<code>btn</code>, <code>badge</code>,
+  <code>role-chip</code>), ícones SVG inline (estilo Lucide). Sem Material/Bootstrap.</li>
+  <li><code>API_BASE_URL = 'http://localhost:8080'</code> centraliza a base da API.</li>
+</ul>
+</section>
+
+<!-- ============ 11. FRONT ROTAS ============ -->
+<section>
+<h2>11. Frontend — rotas, guards e interceptors</h2>
+<p>Todas as features usam <code>loadComponent</code> (lazy). A casca <code>MainLayoutComponent</code> agrupa as rotas
+autenticadas sob <code>authGuard</code>; só <code>/auditoria</code> tem guard extra <code>adminGuard</code>.</p>
+<table>
+<tr><th>Rota</th><th>Componente</th><th>Guard</th></tr>
+<tr><td><code>/login</code></td><td>LoginComponent</td><td>—</td></tr>
+<tr><td><code>/dashboard</code></td><td>DashboardComponent</td><td>authGuard</td></tr>
+<tr><td><code>/crises</code></td><td>CriseListComponent</td><td>authGuard</td></tr>
+<tr><td><code>/crises/nova</code></td><td>CriseFormComponent</td><td>authGuard</td></tr>
+<tr><td><code>/crises/:id</code></td><td>CriseDetailComponent</td><td>authGuard</td></tr>
+<tr><td><code>/relatorios</code> · <code>/relatorios/novo</code></td><td>Relatorio List/Form</td><td>authGuard</td></tr>
+<tr><td><code>/departamentos · /tipos-crise · /instituicoes · /campi · /cenarios</code></td><td>*ListComponent</td><td>authGuard</td></tr>
+<tr><td><code>/auditoria</code></td><td>AuditoriaListComponent</td><td>authGuard + <b>adminGuard</b></td></tr>
+<tr><td><code>**</code></td><td>—</td><td>redirect → /login</td></tr>
+</table>
+
+<h3>Guards (revalidam no backend)</h3>
+<ul>
+  <li><code>authGuard</code>: chama <code>GET /auth/me</code>; sucesso → libera, erro → redireciona a <code>/login</code>.
+  A sessão é revalidada no servidor a cada navegação (não confia em flag local).</li>
+  <li><code>adminGuard</code>: idem, mas exige <code>perfil === 'ADMIN'</code>; autenticado sem permissão vai para <code>/dashboard</code>.</li>
+</ul>
+
+<h3>Interceptor de credenciais</h3>
+<pre><code>export const credentialsInterceptor: HttpInterceptorFn = (req, next) =&gt;
+  next(req.clone({ withCredentials: true }));  // envia o cookie jwt cross-origin</code></pre>
+
+<h3>Diretiva de papel — <code>*appRole</code></h3>
+<p>Diretiva estrutural que renderiza o elemento só se o perfil do usuário estiver na lista permitida
+(<code>*appRole="['ADMIN']"</code>). Usa <code>input.required()</code> + <code>effect()</code> e reage
+automaticamente a login/logout via o signal <code>currentUser</code>. Governa a <em>visibilidade</em> do menu
+(a proteção real de rota fica nos guards + backend).</p>
+</section>
+
+<!-- ============ 12. FEATURES ============ -->
+<section class="pb">
+<h2>12. Frontend — funcionalidades (features)</h2>
+
+<h3>Crises (núcleo)</h3>
+<p>Serviço com todos os endpoints: <code>listAll</code>, <code>findById</code>, <code>create</code>,
+<code>changeStatus</code>, <code>listAcoes</code>, <code>createAcao</code>.</p>
+<ul>
+  <li><b>Lista</b> — carrega todas as crises no signal <code>crises</code>, com links para detalhe/criação.</li>
+  <li><b>Formulário (nova)</b> — a tela mais rica: carrega em paralelo os 4 selects (tipos, campi, cenários,
+  departamentos) e envia <code>CriseRequest</code>. É restrita a ADMIN no menu.</li>
+  <li><b>Detalhe</b> — mostra a crise e suas ações; implementa a máquina de estados
+  (<code>fluxo</code>: ABERTA→EM_ANDAMENTO→RESOLVIDA→ENCERRADA), expõe <code>proximoStatus</code>/<code>avancarStatus()</code>
+  e só mostra o formulário de nova ação quando o status é ABERTA ou EM_ANDAMENTO.</li>
+</ul>
+
+<h3>Dashboard</h3>
+<p>Página única (landing pós-login). Consome <code>GET /api/dashboard/resumo</code> →
+<code>DashboardResumo { totalCrises, crisesAbertas, crisesEmAndamento, crisesResolvidas, crisesCriticas }</code>,
+exibindo KPIs que linkam para as crises.</p>
+
+<h3>Relatórios</h3>
+<p><code>list</code> + <code>form</code>. No formulário, o select de crises é filtrado para exibir
+<strong>apenas crises RESOLVIDA/ENCERRADA</strong> (<code>crisesElegiveis</code>), espelhando a regra do backend.</p>
+
+<h3>Auditoria (só ADMIN)</h3>
+<p>Lista com filtros por entidade, ação e usuário (dropdowns vêm de <code>/facets</code>), badges coloridos por
+ação (CRIAR/ATUALIZAR/EXCLUIR) e por faixa de status HTTP, com <code>DatePipe</code> para a data/hora.</p>
+
+<h3>Dados de referência</h3>
+<p>Departamentos, Tipos de Crise, Instituições, Campi e Cenários. Os <em>serviços</em> expõem CRUD completo
+(incl. <code>update</code> e <code>deactivate</code>), porém, no estado atual, os <em>componentes de lista</em>
+apenas chamam <code>listAll()</code> — funcionando como listagens somente-leitura (não há rotas
+<code>/nova</code> ou <code>/:id</code> para eles). Apenas <b>crises</b> e <b>relatórios</b> têm telas de formulário.</p>
+</section>
+
+<!-- ============ 13. FLUXOS ============ -->
+<section class="pb">
+<h2>13. Fluxos de ponta a ponta</h2>
+
+<h3>Login</h3>
+<div class="tree">Login (Angular)  --POST /auth/login-->  AuthController
+   AuthService valida BCrypt + emite JWT
+   &lt;--Set-Cookie: jwt (HttpOnly)--  navega para /dashboard
+Toda navegação seguinte: authGuard --GET /auth/me--> valida sessão</div>
+
+<h3>Ciclo completo de uma crise</h3>
+<div class="tree">1. ADMIN cria crise         POST /api/crises            (status ABERTA)
+2. Equipe registra ações    POST /api/crises/{id}/acoes (COMUM: só seu depto.)
+3. ADMIN avança status      PATCH /api/crises/{id}/status
+   ABERTA → EM_ANDAMENTO → RESOLVIDA → ENCERRADA
+4. ADMIN emite relatório    POST /api/relatorios        (só RESOLVIDA/ENCERRADA)
+* Cada POST/PUT/PATCH/DELETE gera 1 linha em auditoria_logs automaticamente.</div>
+</section>
+
+<!-- ============ 14. EXECUÇÃO ============ -->
+<section>
+<h2>14. Como executar o projeto</h2>
+<h4>Pré-requisitos</h4>
+<p>Java 21, Maven (wrapper incluso), Node.js + Angular CLI, e um PostgreSQL em
+<code>localhost:5433</code> com o banco <code>crisis_management</code> (usuário/senha <code>postgres</code>).</p>
+
+<h4>Backend (porta 8080)</h4>
+<pre><code># na raiz do projeto
+./mvnw quarkus:dev        # modo dev com live reload
+# Dev UI: http://localhost:8080/q/dev/
+# Flyway aplica V1..V8 e o DataSeeder cria admin/usuario automaticamente</code></pre>
+
+<h4>Frontend (porta 4200)</h4>
+<pre><code>cd frontend
+npm install
+npm start                 # ng serve  →  http://localhost:4200</code></pre>
+
+<h4>Credenciais semeadas</h4>
+<table>
+<tr><th>Perfil</th><th>E-mail</th><th>Senha</th></tr>
+<tr><td>ADMIN</td><td><code>admin@crisis.local</code></td><td><code>Admin@123</code></td></tr>
+<tr><td>COMUM</td><td><code>usuario@crisis.local</code></td><td><code>Comum@123</code></td></tr>
+</table>
+
+<footer>
+SGCI — Sistema de Gestão de Crises Institucionais · Documentação técnica gerada automaticamente ·
+Backend Quarkus/Java 21 + Frontend Angular 20 · PostgreSQL + Flyway
+</footer>
+</section>
+
+</div>
+</body>
+</html>
