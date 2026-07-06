@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SGCI — Frontend Detalhado</title>
+<style>
+  :root{
+    --primary:#2f9e41; --primary-dark:#1f6e2d; --ink:#1b2430; --muted:#5b6672;
+    --line:#d9dee5; --bg-soft:#f4f6f9; --code-bg:#f5f7fa; --code-ink:#243447;
+    --admin:#b0341d; --info:#2563eb; --warn:#b26a00; --kw:#7c3aed; --str:#0a7d4d; --cmt:#8a94a0;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); font-size:12px; line-height:1.55; margin:0;}
+  .page{padding:0 6mm;}
+  h1,h2,h3,h4{color:var(--primary-dark); line-height:1.25; margin:1.3em 0 .45em;}
+  h1{font-size:26px;}
+  h2{font-size:19px; border-bottom:2px solid var(--primary); padding-bottom:4px; margin-top:1.7em;}
+  h3{font-size:15px; color:var(--ink); margin-top:1.1em;}
+  h4{font-size:12.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-top:.9em;}
+  p{margin:.5em 0;}
+  code{font-family:"Cascadia Code",Consolas,"Courier New",monospace; background:var(--code-bg); padding:1px 5px; border-radius:4px; font-size:11px; color:var(--code-ink);}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-left:4px solid var(--primary); border-radius:6px; padding:10px 12px; overflow:auto; font-size:10.3px; line-height:1.5;}
+  pre code{background:none; padding:0; font-size:inherit; color:var(--code-ink);}
+  .k{color:var(--kw); font-weight:600;} .s{color:var(--str);} .c{color:var(--cmt); font-style:italic;} .a{color:var(--info);}
+  table{width:100%; border-collapse:collapse; margin:.6em 0; font-size:10.5px;}
+  th,td{border:1px solid var(--line); padding:5px 7px; text-align:left; vertical-align:top;}
+  th{background:var(--primary); color:#fff; font-weight:600;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  .badge{display:inline-block; padding:1px 7px; border-radius:20px; font-size:9.5px; font-weight:700; color:#fff;}
+  .b-admin{background:var(--admin);} .b-auth{background:var(--info);} .b-public{background:var(--muted);} .b-all{background:var(--primary);}
+  ul,ol{margin:.4em 0 .6em; padding-left:20px;} li{margin:.18em 0;}
+  .lead{font-size:13px; color:var(--muted);}
+  .cover{height:245mm; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; background:linear-gradient(160deg,#f4faf5,#e6f3e9); border-radius:14px; margin:4mm 0; page-break-after:always;}
+  .cover .logo{width:92px; height:92px; border-radius:22px; background:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:22px; box-shadow:0 10px 24px rgba(47,158,65,.35);}
+  .cover .logo svg{width:52px; height:52px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  .cover h1{font-size:42px; margin:0; letter-spacing:2px;}
+  .cover .sub{font-size:15px; color:var(--muted); margin-top:6px;}
+  .cover .chip{display:inline-block; margin:4px; padding:4px 12px; background:#fff; border:1px solid var(--line); border-radius:20px; font-size:11px;}
+  .toc{page-break-after:always;} .toc ol{font-size:13px; line-height:1.95;}
+  .callout{background:#fff8e6; border:1px solid #f0d98a; border-left:4px solid var(--warn); padding:8px 12px; border-radius:6px; margin:.8em 0; font-size:11px;}
+  .note{background:#eef4ff; border:1px solid #cddbfa; border-left:4px solid var(--info); padding:8px 12px; border-radius:6px; margin:.8em 0; font-size:11px;}
+  .tree{background:var(--code-bg); border:1px solid var(--line); border-radius:6px; padding:10px 12px; font-family:Consolas,monospace; font-size:10px; line-height:1.5; white-space:pre;}
+  .pb{page-break-before:always;} h2,h3{page-break-after:avoid;} pre,table{page-break-inside:avoid;}
+  .stepnum{display:inline-block; width:20px; height:20px; border-radius:50%; background:var(--primary); color:#fff; text-align:center; line-height:20px; font-weight:700; font-size:11px; margin-right:6px;}
+  footer{margin-top:22px; border-top:1px solid var(--line); padding-top:8px; color:var(--muted); font-size:10px; text-align:center;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+  <h1>SGCI</h1>
+  <div class="sub">Frontend — Documentação Técnica Aprofundada</div>
+  <div class="sub" style="font-size:13px;">SPA em Angular 20 · Standalone + Signals · Análise do código-fonte</div>
+  <div style="margin-top:30px;">
+    <span class="chip">Angular 20.3</span>
+    <span class="chip">Standalone Components</span>
+    <span class="chip">Signals</span>
+    <span class="chip">RxJS 7.8</span>
+  </div>
+  <div style="margin-top:20px; font-size:12px; color:var(--muted);">Gerado em 06/07/2026</div>
+</div>
+
+<!-- SUMÁRIO -->
+<div class="toc">
+<h2>Sumário</h2>
+<ol>
+  <li>Panorama e princípios de design</li>
+  <li>Bootstrap e configuração global (<code>main.ts</code>, <code>app.config.ts</code>)</li>
+  <li>Estrutura de pastas</li>
+  <li>Camada <code>core</code> — configuração e modelos</li>
+  <li>Autenticação no cliente (<code>AuthService</code> + signals)</li>
+  <li>Interceptor de credenciais</li>
+  <li>Guards de rota (auth e admin)</li>
+  <li>Diretiva estrutural <code>*appRole</code></li>
+  <li>Roteamento e lazy loading</li>
+  <li>Layout principal (sidebar, breadcrumbs, logout)</li>
+  <li>Features — visão geral e padrão comum</li>
+  <li>Feature Crises em profundidade (form + máquina de estados)</li>
+  <li>Dashboard, Relatórios e Auditoria</li>
+  <li>Fluxos de ponta a ponta</li>
+</ol>
+</div>
+
+<!-- 1 -->
+<section>
+<h2>1. Panorama e princípios de design</h2>
+<p class="lead">O frontend do SGCI é uma <strong>Single Page Application em Angular 20.3</strong>, 100% standalone
+(sem <code>NgModule</code>), com estado reativo baseado em <strong>signals</strong> e um design system próprio em
+SCSS. Ele apenas renderiza as telas e consome a API REST do backend Quarkus.</p>
+
+<h3>Seis características que definem o front</h3>
+<table>
+<tr><th>#</th><th>Característica</th><th>Consequência prática</th></tr>
+<tr><td>1</td><td><b>100% standalone</b> — todo componente declara seus próprios <code>imports</code>.</td><td>Não há <code>AppModule</code>; o bootstrap é direto no componente raiz.</td></tr>
+<tr><td>2</td><td><b>Signals</b> para estado (<code>signal</code>, <code>computed</code>, <code>effect</code>).</td><td>Reatividade fina sem <code>BehaviorSubject</code>; a UI reage a login/logout automaticamente.</td></tr>
+<tr><td>3</td><td><b><code>inject()</code></b> em vez de injeção por construtor.</td><td>Código mais enxuto nos componentes/serviços.</td></tr>
+<tr><td>4</td><td><b>Lazy loading</b> em toda rota (<code>loadComponent</code>).</td><td>Cada tela vira um chunk carregado sob demanda.</td></tr>
+<tr><td>5</td><td><b>Sessão por cookie</b> (HttpOnly), não token no JS.</td><td>O cliente só espelha o usuário; a sessão real vive no servidor.</td></tr>
+<tr><td>6</td><td><b>Sem biblioteca de UI</b> (nada de Material/Bootstrap).</td><td>Design system manual em <code>styles.scss</code>, ícones SVG inline.</td></tr>
+</table>
+
+<h3>Stack</h3>
+<table>
+<tr><th>Tecnologia</th><th>Versão</th><th>Papel</th></tr>
+<tr><td>Angular</td><td>20.3</td><td>Framework SPA (core, common, forms, router)</td></tr>
+<tr><td>TypeScript</td><td>5.9</td><td>Linguagem</td></tr>
+<tr><td>RxJS</td><td>7.8</td><td>Observables para HTTP e eventos de navegação</td></tr>
+<tr><td>@angular/build</td><td>20.3</td><td>Application builder (novo)</td></tr>
+<tr><td>SCSS</td><td>—</td><td>Design system próprio</td></tr>
+<tr><td>Karma + Jasmine</td><td>—</td><td>Testes</td></tr>
+</table>
+</section>
+
+<!-- 2 -->
+<section class="pb">
+<h2>2. Bootstrap e configuração global</h2>
+<p>A aplicação sobe sem módulos: <code>main.ts</code> monta o componente raiz <code>App</code> com um objeto de
+configuração. O <code>App</code> só contém um <code>&lt;router-outlet&gt;</code>.</p>
+<pre><code><span class="c">// main.ts</span>
+bootstrapApplication(App, appConfig).catch((err) =&gt; console.error(err));</code></pre>
+
+<p>Todos os provedores globais ficam em <code>app.config.ts</code>:</p>
+<pre><code><span class="c">// app.config.ts</span>
+<span class="k">export const</span> appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideZoneChangeDetection({ eventCoalescing: <span class="k">true</span> }),
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([credentialsInterceptor])),  <span class="c">// cookie em toda req.</span>
+  ],
+};</code></pre>
+<p>Pontos importantes:</p>
+<ul>
+  <li><b><code>provideRouter(routes)</code></b> — registra as rotas lazy (seção 9).</li>
+  <li><b><code>provideHttpClient(withInterceptors([...]))</code></b> — o <code>HttpClient</code> passa por um
+  interceptor funcional que injeta as credenciais (o cookie de sessão) em toda requisição.</li>
+  <li><b><code>provideZoneChangeDetection({ eventCoalescing:true })</code></b> — detecção de mudanças baseada em Zone,
+  agrupando eventos para reduzir ciclos.</li>
+</ul>
+<div class="note">A base da API está centralizada em <code>core/config/api.config.ts</code>:
+<code>export const API_BASE_URL = 'http://localhost:8080';</code> — todos os serviços derivam suas URLs daí.</div>
+</section>
+
+<!-- 3 -->
+<section>
+<h2>3. Estrutura de pastas</h2>
+<div class="tree">app/
+├─ app.ts / app.config.ts / app.routes.ts   (raiz)
+├─ core/                                     infraestrutura transversal
+│   ├─ config/       api.config.ts           (API_BASE_URL)
+│   ├─ guards/       auth.guard · admin.guard
+│   ├─ interceptors/ credentials.interceptor
+│   ├─ directives/   role.directive          (*appRole)
+│   ├─ models/       auth.model · user.model
+│   └─ services/     auth.service            (sessão via signals)
+├─ layouts/
+│   └─ main-layout/  casca das telas autenticadas
+└─ features/                                 uma pasta por domínio
+    ├─ auth/         (login)
+    ├─ dashboard/
+    ├─ crises/       list · form · detail
+    ├─ relatorios/   list · form
+    ├─ auditoria/    list (admin)
+    └─ departamentos · tipos-crise · instituicoes · campi · cenarios
+       (cada feature: models/ · pages/ · services/)</div>
+<p>Cada feature isola <code>models</code> (interfaces/tipos), <code>pages</code> (componentes de tela) e
+<code>services</code> (acesso HTTP), mantendo alto o acoplamento interno e baixo entre features.</p>
+</section>
+
+<!-- 4 -->
+<section class="pb">
+<h2>4. Camada <code>core</code> — configuração e modelos</h2>
+<p>O pacote <code>core</code> reúne tudo que é transversal: config da API, guards, interceptor, diretiva de papel,
+o serviço de autenticação e os modelos base.</p>
+
+<h4>Modelos de autenticação e usuário</h4>
+<pre><code><span class="c">// auth.model.ts</span>
+<span class="k">export interface</span> LoginRequest  { email: <span class="k">string</span>; password: <span class="k">string</span>; }
+<span class="k">export interface</span> LoginResponse { authenticated: <span class="k">boolean</span>; message: <span class="k">string</span>; }
+
+<span class="c">// user.model.ts</span>
+<span class="k">export type</span> Perfil = <span class="s">'ADMIN'</span> | <span class="s">'COMUM'</span>;
+<span class="k">export interface</span> User { id: <span class="k">number</span>; name: <span class="k">string</span>; email: <span class="k">string</span>; perfil: Perfil; }</code></pre>
+<p>Os tipos do front espelham exatamente os DTOs do backend — por exemplo, <code>Perfil</code> reflete o enum
+<code>PerfilUsuario</code>, e cada feature tem seus próprios tipos (ex.: <code>StatusCrise</code>,
+<code>NivelCriticidade</code>, <code>TipoAcao</code>) idênticos aos enums Java.</p>
+</section>
+
+<!-- 5 -->
+<section>
+<h2>5. Autenticação no cliente — <code>AuthService</code></h2>
+<p>O servidor guarda a sessão no cookie; o cliente apenas <strong>espelha</strong> o usuário atual em um signal.
+Todo o resto da aplicação lê esse signal de forma reativa.</p>
+<pre><code><span class="k">@Injectable</span>({ providedIn: <span class="s">'root'</span> })
+<span class="k">export class</span> AuthService {
+  <span class="k">private readonly</span> http = inject(HttpClient);
+  <span class="k">private readonly</span> baseUrl = <span class="s">`${API_BASE_URL}/auth`</span>;
+
+  <span class="k">readonly</span> currentUser = signal&lt;User | <span class="k">null</span>&gt;(<span class="k">null</span>);
+  <span class="k">readonly</span> isAuthenticated = computed(() =&gt; <span class="k">this</span>.currentUser() !== <span class="k">null</span>);
+
+  login(credentials: LoginRequest): Observable&lt;LoginResponse&gt; {
+    <span class="k">return this</span>.http.post&lt;LoginResponse&gt;(<span class="s">`${this.baseUrl}/login`</span>, credentials);
+  }
+  logout(): Observable&lt;<span class="k">void</span>&gt; {
+    <span class="k">return this</span>.http.post&lt;<span class="k">void</span>&gt;(<span class="s">`${this.baseUrl}/logout`</span>, {})
+      .pipe(tap(() =&gt; <span class="k">this</span>.currentUser.set(<span class="k">null</span>)));   <span class="c">// limpa o espelho local</span>
+  }
+  fetchCurrentUser(): Observable&lt;User&gt; {
+    <span class="k">return this</span>.http.get&lt;User&gt;(<span class="s">`${this.baseUrl}/me`</span>)
+      .pipe(tap((user) =&gt; <span class="k">this</span>.currentUser.set(user)));  <span class="c">// atualiza o espelho</span>
+  }
+}</code></pre>
+<div class="note"><b>Padrão-chave:</b> <code>currentUser</code> é a única fonte de verdade da sessão no cliente. Os
+guards a atualizam via <code>fetchCurrentUser()</code>, a diretiva <code>*appRole</code> e o layout a leem, e o
+<code>logout()</code> a zera. Como é um signal, qualquer mudança propaga automaticamente para a UI.</div>
+
+<h4>Login — o componente</h4>
+<pre><code><span class="k">export class</span> LoginComponent {
+  <span class="k">readonly</span> email = signal(<span class="s">''</span>);      <span class="k">readonly</span> password = signal(<span class="s">''</span>);
+  <span class="k">readonly</span> errorMessage = signal&lt;<span class="k">string</span> | <span class="k">null</span>&gt;(<span class="k">null</span>);
+  <span class="k">readonly</span> loading = signal(<span class="k">false</span>);
+
+  onSubmit(): <span class="k">void</span> {
+    <span class="k">this</span>.loading.set(<span class="k">true</span>);
+    <span class="k">this</span>.authService.login({ email: <span class="k">this</span>.email(), password: <span class="k">this</span>.password() }).subscribe({
+      next: (r) =&gt; r.authenticated
+        ? <span class="k">this</span>.router.navigate([<span class="s">'/dashboard'</span>])
+        : <span class="k">this</span>.errorMessage.set(r.message),
+      error: () =&gt; <span class="k">this</span>.errorMessage.set(<span class="s">'Credenciais inválidas'</span>),
+    });
+  }
+}</code></pre>
+</section>
+
+<!-- 6 -->
+<section class="pb">
+<h2>6. Interceptor de credenciais</h2>
+<p>A API está em outra origem (8080) e a sessão é um cookie. Para o browser enviar esse cookie em requisições
+cross-origin, cada chamada precisa de <code>withCredentials: true</code>. Um interceptor funcional aplica isso a
+<strong>todas</strong> as requisições, de forma central:</p>
+<pre><code><span class="k">export const</span> credentialsInterceptor: HttpInterceptorFn = (req, next) =&gt; {
+  <span class="k">return</span> next(req.clone({ withCredentials: <span class="k">true</span> }));
+};</code></pre>
+<p>É o par natural da configuração de CORS do backend (<code>access-control-allow-credentials=true</code>): sem os
+dois lados alinhados, o cookie de sessão não trafegaria e toda requisição autenticada falharia com 401.</p>
+</section>
+
+<!-- 7 -->
+<section>
+<h2>7. Guards de rota</h2>
+<p>Os guards são funções (<code>CanActivateFn</code>) e, em vez de confiar num flag local, <strong>revalidam a
+sessão no backend a cada navegação</strong> chamando <code>GET /auth/me</code>.</p>
+
+<h4>authGuard — exige sessão válida</h4>
+<pre><code><span class="k">export const</span> authGuard: CanActivateFn = () =&gt; {
+  <span class="k">const</span> authService = inject(AuthService);
+  <span class="k">const</span> router = inject(Router);
+  <span class="k">return</span> authService.fetchCurrentUser().pipe(
+    map(() =&gt; <span class="k">true</span>),                                  <span class="c">// sessão ok → libera</span>
+    catchError(() =&gt; of(router.parseUrl(<span class="s">'/login'</span>))),   <span class="c">// erro → redireciona</span>
+  );
+};</code></pre>
+
+<h4>adminGuard — exige perfil ADMIN</h4>
+<pre><code><span class="k">export const</span> adminGuard: CanActivateFn = () =&gt; {
+  ...
+  <span class="k">return</span> authService.fetchCurrentUser().pipe(
+    map((user) =&gt; user.perfil === <span class="s">'ADMIN'</span> ? <span class="k">true</span> : router.parseUrl(<span class="s">'/dashboard'</span>)),
+    catchError(() =&gt; of(router.parseUrl(<span class="s">'/login'</span>))),
+  );
+};</code></pre>
+<p>Assim há três desfechos: autenticado e autorizado → segue; autenticado sem permissão → volta ao painel;
+não autenticado → login. Como efeito colateral útil, <code>fetchCurrentUser()</code> também popula o signal
+<code>currentUser</code>, deixando a UI pronta assim que a rota carrega.</p>
+</section>
+
+<!-- 8 -->
+<section class="pb">
+<h2>8. Diretiva estrutural <code>*appRole</code></h2>
+<p>Controla a <strong>visibilidade visual</strong> de elementos conforme o perfil, reagindo a login/logout sem
+código extra — porque observa o signal <code>currentUser</code> dentro de um <code>effect()</code>.</p>
+<pre><code><span class="k">@Directive</span>({ selector: <span class="s">'[appRole]'</span>, standalone: <span class="k">true</span> })
+<span class="k">export class</span> RoleDirective {
+  <span class="k">readonly</span> appRole = input.required&lt;<span class="k">string</span>[] | <span class="k">string</span>&gt;();
+  <span class="k">private</span> rendered = <span class="k">false</span>;
+
+  constructor() {
+    effect(() =&gt; {
+      <span class="k">const</span> roles = <span class="k">this</span>.appRole();
+      <span class="k">const</span> allowed = Array.isArray(roles) ? roles : [roles];
+      <span class="k">const</span> user = <span class="k">this</span>.auth.currentUser();
+      <span class="k">this</span>.toggle(!!user &amp;&amp; allowed.includes(user.perfil));  <span class="c">// mostra/esconde</span>
+    });
+  }
+  <span class="c">// toggle: cria ou limpa a embedded view via ViewContainerRef</span>
+}</code></pre>
+<p>Uso no template: <code>*appRole="['ADMIN']"</code>. Importante: isso é apenas <em>cosmético</em> — esconde botões
+e itens de menu. A proteção real vem dos guards (front) e das anotações <code>@RolesAllowed</code> (back).</p>
+</section>
+
+<!-- 9 -->
+<section>
+<h2>9. Roteamento e lazy loading</h2>
+<p>Todas as telas usam <code>loadComponent</code> (carregamento sob demanda). As rotas autenticadas são
+<em>filhas</em> do <code>MainLayoutComponent</code>, que aplica <code>authGuard</code> uma vez e vale para todas.</p>
+<pre><code><span class="k">export const</span> routes: Routes = [
+  { path: <span class="s">''</span>, redirectTo: <span class="s">'login'</span>, pathMatch: <span class="s">'full'</span> },
+  { path: <span class="s">'login'</span>, loadComponent: () =&gt; import(<span class="s">'.../login.component'</span>)... },
+  {
+    path: <span class="s">''</span>,
+    loadComponent: () =&gt; import(<span class="s">'.../main-layout.component'</span>)...,
+    canActivate: [authGuard],                     <span class="c">// protege todos os filhos</span>
+    children: [
+      { path: <span class="s">'dashboard'</span>,    loadComponent: ... },
+      { path: <span class="s">'crises'</span>,       loadComponent: ... },
+      { path: <span class="s">'crises/nova'</span>,  loadComponent: ... },   <span class="c">// antes de :id</span>
+      { path: <span class="s">'crises/:id'</span>,   loadComponent: ... },
+      { path: <span class="s">'relatorios'</span>,   loadComponent: ... },
+      { path: <span class="s">'relatorios/novo'</span>, loadComponent: ... },
+      { path: <span class="s">'auditoria'</span>, canActivate: [adminGuard], loadComponent: ... }, <span class="c">// só ADMIN</span>
+      ...                                          <span class="c">// departamentos, campi, cenarios, etc.</span>
+    ],
+  },
+  { path: <span class="s">'**'</span>, redirectTo: <span class="s">'login'</span> },
+];</code></pre>
+<table>
+<tr><th>Rota</th><th>Componente</th><th>Guard</th></tr>
+<tr><td><code>/login</code></td><td>LoginComponent</td><td><span class="badge b-public">—</span></td></tr>
+<tr><td><code>/dashboard</code></td><td>DashboardComponent</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/crises</code> · <code>/crises/nova</code> · <code>/crises/:id</code></td><td>List · Form · Detail</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/relatorios</code> · <code>/relatorios/novo</code></td><td>List · Form</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/departamentos · /tipos-crise · /instituicoes · /campi · /cenarios</code></td><td>*ListComponent</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/auditoria</code></td><td>AuditoriaListComponent</td><td><span class="badge b-admin">+ adminGuard</span></td></tr>
+</table>
+<div class="callout"><b>Ordem importa:</b> <code>crises/nova</code> é declarada <em>antes</em> de <code>crises/:id</code>,
+senão "nova" seria capturada como um id.</div>
+</section>
+
+<!-- 10 -->
+<section class="pb">
+<h2>10. Layout principal (<code>MainLayoutComponent</code>)</h2>
+<p>É a casca de todas as telas autenticadas: sidebar de navegação, cabeçalho com breadcrumbs, cartão do usuário e
+botão de logout. O <code>&lt;router-outlet&gt;</code> renderiza a página atual no centro.</p>
+
+<h4>Breadcrumbs reativos</h4>
+<p>A trilha é reconstruída a cada <code>NavigationEnd</code>, traduzindo os segmentos da URL por um mapa de rótulos:</p>
+<pre><code><span class="k">const</span> CRUMB_LABELS = {
+  dashboard: <span class="s">'Painel'</span>, crises: <span class="s">'Crises'</span>, nova: <span class="s">'Nova Crise'</span>,
+  relatorios: <span class="s">'Relatórios'</span>, auditoria: <span class="s">'Auditoria'</span>, ...
+};
+constructor() {
+  <span class="k">this</span>.updateCrumbs(<span class="k">this</span>.router.url);
+  <span class="k">this</span>.router.events.pipe(
+    filter((e): e is NavigationEnd =&gt; e <span class="k">instanceof</span> NavigationEnd),
+    takeUntilDestroyed(),
+  ).subscribe((e) =&gt; <span class="k">this</span>.updateCrumbs(e.urlAfterRedirects));
+}
+<span class="c">// segmentos numéricos (ex.: /crises/5) viram "Detalhe"</span></code></pre>
+
+<h4>Visibilidade por papel no menu</h4>
+<p>O menu usa <code>*appRole="['ADMIN']"</code> para esconder itens de não-admins. Assim, um usuário COMUM vê só o
+grupo <em>Principal</em> (sem "Nova Crise"), enquanto o ADMIN vê também todo o bloco <em>Administração</em>.</p>
+<table>
+<tr><th>Grupo</th><th>Itens</th><th>Visível para</th></tr>
+<tr><td>Principal</td><td>Painel, Crises, Relatórios</td><td>Todos autenticados</td></tr>
+<tr><td>Principal</td><td>Nova Crise</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+<tr><td>Administração</td><td>Departamentos, Tipos de Crise, Cenários, Campi, Instituições, Auditoria</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+</table>
+<pre><code><span class="c">// logout: chama o backend e volta ao login</span>
+onLogout(): <span class="k">void</span> {
+  <span class="k">this</span>.authService.logout().subscribe(() =&gt; <span class="k">this</span>.router.navigate([<span class="s">'/login'</span>]));
+}</code></pre>
+</section>
+
+<!-- 11 -->
+<section>
+<h2>11. Features — visão geral e padrão comum</h2>
+<p>Cada feature segue a mesma anatomia: um <code>service</code> (<code>providedIn:'root'</code>, usa
+<code>inject(HttpClient)</code> e deriva a URL de <code>API_BASE_URL</code>) e componentes de página com signals
+<code>loading</code>/<code>error</code>/dados carregados no <code>ngOnInit</code>.</p>
+
+<h4>Serviço típico (crises)</h4>
+<pre><code><span class="k">@Injectable</span>({ providedIn: <span class="s">'root'</span> })
+<span class="k">export class</span> CriseService {
+  <span class="k">private readonly</span> baseUrl = <span class="s">`${API_BASE_URL}/api/crises`</span>;
+  listAll()          { <span class="k">return this</span>.http.get&lt;Crise[]&gt;(<span class="k">this</span>.baseUrl, ...); }
+  findById(id)       { <span class="k">return this</span>.http.get&lt;Crise&gt;(<span class="s">`.../${id}`</span>, ...); }
+  create(req)        { <span class="k">return this</span>.http.post&lt;Crise&gt;(<span class="k">this</span>.baseUrl, req, ...); }
+  changeStatus(id,s) { <span class="k">return this</span>.http.patch(<span class="s">`.../${id}/status`</span>, { status: s }, ...); }
+  listAcoes(id)      { <span class="k">return this</span>.http.get(<span class="s">`.../${id}/acoes`</span>, ...); }
+  createAcao(id,req) { <span class="k">return this</span>.http.post(<span class="s">`.../${id}/acoes`</span>, req, ...); }
+}</code></pre>
+
+<h4>Panorama das features</h4>
+<table>
+<tr><th>Feature</th><th>Páginas</th><th>Endpoints consumidos</th></tr>
+<tr><td>auth</td><td>login</td><td><code>/auth/login</code></td></tr>
+<tr><td>dashboard</td><td>dashboard</td><td><code>/api/dashboard/resumo</code></td></tr>
+<tr><td>crises</td><td>list · form · detail</td><td><code>/api/crises</code> (+ status, acoes)</td></tr>
+<tr><td>relatorios</td><td>list · form</td><td><code>/api/relatorios</code></td></tr>
+<tr><td>auditoria</td><td>list (admin)</td><td><code>/api/auditoria</code> (+ facets)</td></tr>
+<tr><td>departamentos · tipos-crise · instituicoes · campi · cenarios</td><td>list</td><td><code>/api/{ref}</code></td></tr>
+</table>
+<div class="callout"><b>Observação de estado atual:</b> os serviços dos 5 cadastros de referência já expõem CRUD
+completo (<code>create</code>/<code>update</code>/<code>deactivate</code>), mas os componentes de lista atualmente só
+chamam <code>listAll()</code> — funcionam como listagens somente-leitura. Apenas <b>crises</b> e <b>relatórios</b>
+têm telas de formulário.</div>
+</section>
+
+<!-- 12 -->
+<section class="pb">
+<h2>12. Feature Crises em profundidade</h2>
+
+<h3>12.1 Formulário de nova crise</h3>
+<p>É a tela mais rica: carrega em paralelo as quatro fontes dos selects e monta o <code>CriseRequest</code>. O
+<code>nivel</code> começa em <code>BAIXO</code> e as FKs começam nulas.</p>
+<pre><code><span class="k">export class</span> CriseFormComponent <span class="k">implements</span> OnInit {
+  <span class="k">readonly</span> tipos = signal&lt;TipoCrise[]&gt;([]);   <span class="k">readonly</span> campi = signal&lt;Campus[]&gt;([]);
+  <span class="k">readonly</span> cenarios = signal&lt;Cenario[]&gt;([]); <span class="k">readonly</span> departamentos = signal&lt;Departamento[]&gt;([]);
+  <span class="k">readonly</span> niveis: NivelCriticidade[] = [<span class="s">'BAIXO'</span>,<span class="s">'MEDIO'</span>,<span class="s">'ALTO'</span>,<span class="s">'CRITICO'</span>];
+
+  model: CriseRequest = { titulo:<span class="s">''</span>, descricao:<span class="s">''</span>, nivel:<span class="s">'BAIXO'</span>,
+    tipoCriseId:<span class="k">null</span>, campusId:<span class="k">null</span>, cenarioId:<span class="k">null</span>, departamentoId:<span class="k">null</span> };
+
+  ngOnInit() {                                     <span class="c">// popula os 4 dropdowns</span>
+    <span class="k">this</span>.tipoCriseService.listAll().subscribe((d) =&gt; <span class="k">this</span>.tipos.set(d));
+    <span class="k">this</span>.campusService.listAll().subscribe((d) =&gt; <span class="k">this</span>.campi.set(d));
+    <span class="k">this</span>.cenarioService.listAll().subscribe((d) =&gt; <span class="k">this</span>.cenarios.set(d));
+    <span class="k">this</span>.departamentoService.listAll().subscribe((d) =&gt; <span class="k">this</span>.departamentos.set(d));
+  }
+  onSubmit() {
+    <span class="k">this</span>.criseService.create(<span class="k">this</span>.model).subscribe({
+      next: () =&gt; <span class="k">this</span>.router.navigate([<span class="s">'/crises'</span>]),
+      error: () =&gt; <span class="k">this</span>.error.set(<span class="s">'Não foi possível cadastrar a crise...'</span>),
+    });
+  }
+}</code></pre>
+
+<h3>12.2 Detalhe da crise — máquina de estados no cliente</h3>
+<p>A tela de detalhe implementa o ciclo de vida da crise usando um mapa <code>fluxo</code> e dois
+<code>computed</code>: um para o próximo status, outro para decidir se o formulário de nova ação aparece.</p>
+<pre><code><span class="k">private readonly</span> fluxo: Record&lt;StatusCrise, StatusCrise | <span class="k">null</span>&gt; = {
+  ABERTA: <span class="s">'EM_ANDAMENTO'</span>, EM_ANDAMENTO: <span class="s">'RESOLVIDA'</span>,
+  RESOLVIDA: <span class="s">'ENCERRADA'</span>, ENCERRADA: <span class="k">null</span>,          <span class="c">// terminal</span>
+};
+<span class="k">readonly</span> proximoStatus = computed(() =&gt; {
+  <span class="k">const</span> atual = <span class="k">this</span>.crise();
+  <span class="k">return</span> atual ? <span class="k">this</span>.fluxo[atual.status] : <span class="k">null</span>;
+});
+<span class="k">readonly</span> formVisivel = computed(() =&gt; {         <span class="c">// só registra ação se aberta/andamento</span>
+  <span class="k">const</span> s = <span class="k">this</span>.crise()?.status;
+  <span class="k">return</span> s === <span class="s">'ABERTA'</span> || s === <span class="s">'EM_ANDAMENTO'</span>;
+});
+
+avancarStatus() {
+  <span class="k">const</span> proximo = <span class="k">this</span>.proximoStatus();
+  <span class="k">if</span> (!proximo) <span class="k">return</span>;
+  <span class="k">this</span>.criseService.changeStatus(<span class="k">this</span>.criseId, proximo)
+    .subscribe({ next: (d) =&gt; <span class="k">this</span>.crise.set(d), ... });
+}
+registrarAcao() {
+  <span class="k">this</span>.criseService.createAcao(<span class="k">this</span>.criseId, <span class="k">this</span>.novaAcao)
+    .subscribe({ next: () =&gt; { <span class="k">this</span>.novaAcao = {descricao:<span class="s">''</span>,tipo:<span class="s">'CONTENCAO'</span>}; <span class="k">this</span>.carregarAcoes(); }, ... });
+}</code></pre>
+<div class="note">Essa máquina de estados é o <em>espelho</em> da regra do backend (crise ENCERRADA é terminal). O
+front esconde o botão de avançar/registrar; o back a garante de fato — defesa em profundidade.</div>
+</section>
+
+<!-- 13 -->
+<section>
+<h2>13. Dashboard, Relatórios e Auditoria</h2>
+
+<h4>Dashboard</h4>
+<p>Página única (landing pós-login e destino do <code>adminGuard</code> para não-admins). Consome
+<code>GET /api/dashboard/resumo</code> e exibe KPIs (<code>totalCrises</code>, <code>crisesAbertas</code>,
+<code>crisesEmAndamento</code>, <code>crisesResolvidas</code>, <code>crisesCriticas</code>) que linkam para as crises.</p>
+
+<h4>Relatórios</h4>
+<p>No formulário, o select de crises é <strong>filtrado</strong> para exibir apenas crises
+<code>RESOLVIDA</code>/<code>ENCERRADA</code> (<code>crisesElegiveis</code>), espelhando a regra do backend de que só
+crises fechadas geram relatório.</p>
+
+<h4>Auditoria (só ADMIN)</h4>
+<p>Lista com filtros por entidade, ação e usuário — os valores dos dropdowns vêm de
+<code>GET /api/auditoria/facets</code>. Usa <code>DatePipe</code> para a data/hora e helpers que colorem badges por
+ação (CRIAR→verde, ATUALIZAR→azul, EXCLUIR→vermelho) e por faixa de status HTTP.</p>
+</section>
+
+<!-- 14 -->
+<section class="pb">
+<h2>14. Fluxos de ponta a ponta</h2>
+
+<h3>Autenticação e proteção de rota</h3>
+<div class="tree"><span class="stepnum">1</span> Usuário envia login  →  AuthService.login()  →  POST /auth/login
+<span class="stepnum">2</span> Backend responde com Set-Cookie: jwt (HttpOnly)  →  navega para /dashboard
+<span class="stepnum">3</span> A cada navegação guardada:
+     authGuard  →  fetchCurrentUser()  →  GET /auth/me  (cookie enviado pelo interceptor)
+     ├─ sucesso  →  popula currentUser + libera
+     └─ erro     →  redireciona a /login
+<span class="stepnum">4</span> adminGuard (só /auditoria): exige perfil === 'ADMIN', senão volta a /dashboard
+<span class="stepnum">5</span> UI reativa: *appRole e o layout leem o signal currentUser
+<span class="stepnum">6</span> Logout  →  POST /auth/logout  →  currentUser.set(null)  →  /login</div>
+
+<h3>Operação sobre uma crise</h3>
+<div class="tree"><span class="stepnum">1</span> ADMIN em /crises/nova preenche o form (4 selects carregados em paralelo)
+    →  CriseService.create()  →  POST /api/crises  →  volta a /crises
+<span class="stepnum">2</span> Qualquer autenticado abre /crises/:id (detalhe + ações)
+<span class="stepnum">3</span> Registrar ação (form visível só se ABERTA/EM_ANDAMENTO)
+    →  createAcao()  →  POST /api/crises/{id}/acoes
+<span class="stepnum">4</span> ADMIN avança status (computed proximoStatus)
+    →  changeStatus()  →  PATCH /api/crises/{id}/status
+<span class="stepnum">5</span> Após RESOLVIDA/ENCERRADA: /relatorios/novo lista só crises elegíveis</div>
+
+<footer>
+SGCI — Sistema de Gestão de Crises Institucionais · Documentação técnica do frontend ·
+Angular 20.3 · Standalone Components + Signals · RxJS · SCSS design system
+</footer>
+</section>
+
+</div>
+</body>
+</html>
