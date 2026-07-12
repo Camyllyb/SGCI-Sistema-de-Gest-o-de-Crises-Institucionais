@@ -28,7 +28,6 @@
           <th>Nível Sugerido</th>
           <th>Tipo de Crise</th>
           <th>Departamento</th>
-          <th>Status</th>
           <th class="cell-actions">Ações</th>
         </tr>
       </thead>
@@ -40,11 +39,6 @@
             <td class="muted">{{ cenario.nivelSugerido || '-' }}</td>
             <td class="muted">{{ tipoNome(cenario.tipoCriseId) }}</td>
             <td class="muted">{{ departamentoNome(cenario.departamentoId) }}</td>
-            <td>
-              <span [class]="cenario.active ? 'badge badge--success' : 'badge badge--neutral'">{{
-                cenario.active ? 'Ativo' : 'Inativo'
-              }}</span>
-            </td>
             <td class="cell-actions">
               <a class="btn btn--ghost btn--sm" [routerLink]="['/cenarios', cenario.id, 'editar']">Editar</a>
               <button class="btn btn--ghost btn--sm btn--danger-ghost" type="button" (click)="remove(cenario)">
@@ -54,7 +48,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="empty">Nenhum cenário de crise cadastrado.</td>
+            <td colspan="6" class="empty">Nenhum cenário de crise cadastrado.</td>
           </tr>
         }
       </tbody>

@@ -22,13 +22,18 @@ public record UsuarioRequest(
         @Size(max = 150, message = "O e-mail deve ter no máximo 150 caracteres")
         String email,
 
-        @Size(min = 6, max = 100, message = "A senha deve ter entre 6 e 100 caracteres")
+        @Size(min = 8, max = 100, message = "A senha deve ter entre 8 e 100 caracteres")
         String password,
 
         @NotNull(message = "O perfil é obrigatório")
         PerfilUsuario perfil,
 
         Long departamentoId,
+
+        Long instituicaoId,
+
+        @Size(max = 100, message = "O cargo deve ter no máximo 100 caracteres")
+        String cargo,
 
         Boolean active) {
 }

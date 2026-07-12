@@ -72,6 +72,34 @@
             </select>
           </div>
 
+          <div class="form-group">
+            <label class="form-label" for="instituicaoId">Instituição</label>
+            <select
+              class="form-control"
+              id="instituicaoId"
+              name="instituicaoId"
+              [(ngModel)]="model.instituicaoId"
+            >
+              <option [ngValue]="null">Nenhuma</option>
+              @for (inst of instituicoes(); track inst.id) {
+                <option [ngValue]="inst.id">{{ inst.nome }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cargo">Cargo</label>
+            <input
+              class="form-control"
+              id="cargo"
+              name="cargo"
+              type="text"
+              placeholder="Ex.: Coordenador de TI"
+              maxlength="100"
+              [(ngModel)]="model.cargo"
+            />
+          </div>
+
           @if (id()) {
             <div class="form-group form-group--full">
               <label class="form-label" for="active">Status</label>

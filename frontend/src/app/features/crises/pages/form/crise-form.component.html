@@ -10,7 +10,7 @@
     <p class="alert alert--error">{{ errorMessage }}</p>
   }
 
-  <form #criseForm="ngForm" (ngSubmit)="onSubmit()">
+  <form #criseForm="ngForm" (ngSubmit)="onSubmit(criseForm)">
     <div class="card-panel form-section">
       <div class="form-section__head">
         <span class="form-section__icon" aria-hidden="true">
@@ -35,8 +35,14 @@
           type="text"
           placeholder="Ex.: Vazamento de gás no Bloco C"
           required
+          maxlength="200"
+          #titulo="ngModel"
+          [class.is-invalid]="titulo.invalid && titulo.touched"
           [(ngModel)]="model.titulo"
         />
+        @if (titulo.invalid && titulo.touched) {
+          <small class="field-error">Informe o título da ocorrência.</small>
+        }
       </div>
 
       <div class="form-group">
@@ -47,8 +53,14 @@
           name="descricao"
           placeholder="Descreva a ocorrência com o máximo de detalhes possível..."
           required
+          maxlength="1000"
+          #descricao="ngModel"
+          [class.is-invalid]="descricao.invalid && descricao.touched"
           [(ngModel)]="model.descricao"
         ></textarea>
+        @if (descricao.invalid && descricao.touched) {
+          <small class="field-error">Descreva a ocorrência.</small>
+        }
       </div>
     </div>
 
@@ -85,6 +97,8 @@
             id="tipoCriseId"
             name="tipoCriseId"
             required
+            #tipo="ngModel"
+            [class.is-invalid]="tipo.invalid && tipo.touched"
             [(ngModel)]="model.tipoCriseId"
           >
             <option [ngValue]="null" disabled>Selecione...</option>
@@ -92,6 +106,9 @@
               <option [ngValue]="tipo.id">{{ tipo.nome }}</option>
             }
           </select>
+          @if (tipo.invalid && tipo.touched) {
+            <small class="field-error">Selecione o tipo de crise.</small>
+          }
         </div>
 
         <div class="form-group form-group--full">
@@ -130,6 +147,8 @@
             id="campusId"
             name="campusId"
             required
+            #campus="ngModel"
+            [class.is-invalid]="campus.invalid && campus.touched"
             [(ngModel)]="model.campusId"
           >
             <option [ngValue]="null" disabled>Selecione...</option>
@@ -137,6 +156,9 @@
               <option [ngValue]="campus.id">{{ campus.nome }}</option>
             }
           </select>
+          @if (campus.invalid && campus.touched) {
+            <small class="field-error">Selecione o campus.</small>
+          }
         </div>
 
         <div class="form-group">
@@ -146,6 +168,8 @@
             id="departamentoId"
             name="departamentoId"
             required
+            #departamento="ngModel"
+            [class.is-invalid]="departamento.invalid && departamento.touched"
             [(ngModel)]="model.departamentoId"
           >
             <option [ngValue]="null" disabled>Selecione...</option>
@@ -153,11 +177,14 @@
               <option [ngValue]="departamento.id">{{ departamento.nome }}</option>
             }
           </select>
+          @if (departamento.invalid && departamento.touched) {
+            <small class="field-error">Selecione o departamento.</small>
+          }
         </div>
       </div>
 
       <div class="form__actions">
-        <button class="btn-primary" type="submit" [disabled]="criseForm.invalid || saving()">
+        <button class="btn-primary" type="submit" [disabled]="saving()">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M20 6 9 17l-5-5" />
           </svg>

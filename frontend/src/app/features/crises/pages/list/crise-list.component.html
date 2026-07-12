@@ -1,8 +1,10 @@
 <section class="page">
   <header class="page__header">
     <div class="page__heading">
-      <h1>Crises</h1>
-      <span class="page__subtitle">Ocorrências registradas na instituição</span>
+      <h1>{{ isAdmin() ? 'Crises' : 'Minhas Crises' }}</h1>
+      <span class="page__subtitle">
+        {{ isAdmin() ? 'Ocorrências registradas na instituição' : 'Crises que você cadastrou' }}
+      </span>
     </div>
     <div class="page__actions">
       <a class="btn-primary" routerLink="/crises/nova">
@@ -15,10 +17,95 @@
     </div>
   </header>
 
+  <!-- Barra de filtros -->
+  <div class="card-panel card--pad filters">
+    <div class="filters__search">
+      <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+      </svg>
+      <input
+        type="search"
+        class="form-control"
+        placeholder="Buscar por título ou descrição..."
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event); resetPage()"
+      />
+    </div>
+
+    <div class="filters__group">
+      <select
+        class="form-control"
+        aria-label="Filtrar por status"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event); resetPage()"
+      >
+        <option value="">Todos os status</option>
+        @for (s of statusOptions; track s) {
+          <option [value]="s">{{ s.toLowerCase().replace('_', ' ') }}</option>
+        }
+      </select>
+
+      <select
+        class="form-control"
+        aria-label="Filtrar por prioridade"
+        [ngModel]="nivelFilter()"
+        (ngModelChange)="nivelFilter.set($event); resetPage()"
+      >
+        <option value="">Todas as prioridades</option>
+        @for (n of nivelOptions; track n) {
+          <option [value]="n">{{ n.toLowerCase() }}</option>
+        }
+      </select>
+
+      <input
+        type="date"
+        class="form-control"
+        aria-label="Data inicial"
+        [ngModel]="dataDe()"
+        (ngModelChange)="dataDe.set($event); resetPage()"
+      />
+      <input
+        type="date"
+        class="form-control"
+        aria-label="Data final"
+        [ngModel]="dataAte()"
+        (ngModelChange)="dataAte.set($event); resetPage()"
+      />
+
+      <select
+        class="form-control"
+        aria-label="Ordenar"
+        [ngModel]="sort()"
+        (ngModelChange)="sort.set($event)"
+      >
+        <option value="recentes">Mais recentes</option>
+        <option value="antigas">Mais antigas</option>
+        <option value="nivel">Maior prioridade</option>
+        <option value="titulo">Título (A–Z)</option>
+      </select>
+
+      @if (hasActiveFilters()) {
+        <button class="btn btn--ghost btn--sm" type="button" (click)="clearFilters()">Limpar</button>
+      }
+    </div>
+  </div>
+
   @if (loading()) {
-    <p class="state">Carregando...</p>
+    <div class="card-panel card--pad">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <span class="skeleton skeleton--line" style="margin-bottom: var(--space-3)"></span>
+      }
+    </div>
   } @else if (error(); as errorMessage) {
     <p class="alert alert--error">{{ errorMessage }}</p>
+  } @else if (crises().length === 0) {
+    <div class="card-panel card--pad empty">
+      <p>Nenhuma crise cadastrada.</p>
+      <p class="muted" style="margin-bottom: var(--space-4)">
+        Registre uma nova ocorrência para acompanhá-la aqui.
+      </p>
+      <a class="btn-primary" routerLink="/crises/nova">Cadastrar crise</a>
+    </div>
   } @else {
     <table class="data-table">
       <thead>
@@ -26,14 +113,14 @@
           <th>ID</th>
           <th>Título</th>
           <th>Status</th>
-          <th>Nível</th>
+          <th>Prioridade</th>
           <th>Tipo</th>
           <th>Campus</th>
-          <th>Departamento</th>
+          <th>Criada em</th>
         </tr>
       </thead>
       <tbody>
-        @for (crise of crises(); track crise.id) {
+        @for (crise of paged(); track crise.id) {
           <tr>
             <td class="cell-id">#{{ crise.id }}</td>
             <td>
@@ -51,14 +138,40 @@
             </td>
             <td class="muted">{{ tipoNome(crise.tipoCriseId) }}</td>
             <td class="muted">{{ campusNome(crise.campusId) }}</td>
-            <td class="muted">{{ departamentoNome(crise.departamentoId) }}</td>
+            <td class="muted">{{ crise.createdAt | date: 'dd/MM/yyyy' }}</td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="empty">Nenhuma crise cadastrada.</td>
+            <td colspan="7" class="empty">Nenhuma crise corresponde aos filtros aplicados.</td>
           </tr>
         }
       </tbody>
     </table>
+
+    @if (filtered().length > pageSize) {
+      <div class="pagination">
+        <span class="pagination__info">
+          Página {{ safePage() + 1 }} de {{ totalPages() }} · {{ filtered().length }} resultado(s)
+        </span>
+        <div class="pagination__controls">
+          <button
+            class="btn btn--secondary btn--sm"
+            type="button"
+            [disabled]="safePage() === 0"
+            (click)="prevPage()"
+          >
+            Anterior
+          </button>
+          <button
+            class="btn btn--secondary btn--sm"
+            type="button"
+            [disabled]="safePage() >= totalPages() - 1"
+            (click)="nextPage()"
+          >
+            Próxima
+          </button>
+        </div>
+      </div>
+    }
   }
 </section>

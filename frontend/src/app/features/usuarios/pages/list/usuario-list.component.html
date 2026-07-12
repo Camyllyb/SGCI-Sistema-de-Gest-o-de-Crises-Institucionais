@@ -38,7 +38,7 @@
       </thead>
       <tbody>
         @for (usuario of usuarios(); track usuario.id) {
-          <tr>
+          <tr [class.row--inactive]="!usuario.active">
             <td class="cell-id">#{{ usuario.id }}</td>
             <td>{{ usuario.name }}</td>
             <td class="muted">{{ usuario.email }}</td>
@@ -48,7 +48,7 @@
               }}</span>
             </td>
             <td class="muted">{{ departamentoNome(usuario.departamentoId) }}</td>
-            <td>
+            <td class="cell-status">
               <span [class]="usuario.active ? 'badge badge--success' : 'badge badge--neutral'">{{
                 usuario.active ? 'Ativo' : 'Inativo'
               }}</span>
@@ -58,13 +58,19 @@
               <button class="btn btn--ghost btn--sm" type="button" (click)="resetSenha(usuario)">
                 Reset senha
               </button>
-              <button
-                class="btn btn--ghost btn--sm btn--danger-ghost"
-                type="button"
-                (click)="remove(usuario)"
-              >
-                Excluir
-              </button>
+              @if (usuario.active) {
+                <button
+                  class="btn btn--ghost btn--sm btn--danger-ghost"
+                  type="button"
+                  (click)="desativar(usuario)"
+                >
+                  Desativar
+                </button>
+              } @else {
+                <button class="btn btn--ghost btn--sm" type="button" (click)="ativar(usuario)">
+                  Reativar
+                </button>
+              }
             </td>
           </tr>
         } @empty {

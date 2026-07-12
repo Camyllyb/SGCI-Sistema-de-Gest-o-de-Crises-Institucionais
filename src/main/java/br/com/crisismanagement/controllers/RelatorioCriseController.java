@@ -5,7 +5,6 @@ import java.util.List;
 import br.com.crisismanagement.dto.RelatorioCriseRequest;
 import br.com.crisismanagement.dto.RelatorioCriseResponse;
 import br.com.crisismanagement.services.RelatorioCriseService;
-import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -18,8 +17,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+/** Relatórios são exclusivos do perfil ADMIN (leitura e criação). */
 @Path("/api/relatorios")
-@Authenticated
+@RolesAllowed("ADMIN")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class RelatorioCriseController {

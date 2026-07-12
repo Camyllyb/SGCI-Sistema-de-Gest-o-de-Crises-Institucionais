@@ -1,8 +1,11 @@
 package br.com.crisismanagement.controllers;
 
 import br.com.crisismanagement.dto.ChangePasswordRequest;
+import br.com.crisismanagement.dto.ForgotPasswordRequest;
 import br.com.crisismanagement.dto.LoginRequest;
 import br.com.crisismanagement.dto.LoginResponse;
+import br.com.crisismanagement.dto.ProfileResponse;
+import br.com.crisismanagement.dto.ResetPasswordRequest;
 import br.com.crisismanagement.dto.UserResponse;
 import br.com.crisismanagement.security.AuthCookieFactory;
 import br.com.crisismanagement.services.AuthService;
@@ -67,5 +70,36 @@ public class AuthController {
     @Produces(MediaType.APPLICATION_JSON)
     public UserResponse me() {
         return authService.getCurrentUser();
+    }
+
+    @GET
+    @Path("/perfil")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProfileResponse perfil() {
+        return authService.getProfile();
+    }
+
+    /**
+     * Inicia a recuperação de senha. A resposta é sempre 204, independentemente
+     * de o e-mail existir, para não permitir enumeração de contas.
+     */
+    @POST
+    @Path("/forgot-password")
+    @PermitAll
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response forgotPassword(@Valid ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.email());
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/reset-password")
+    @PermitAll
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response resetPassword(@Valid ResetPasswordRequest request) {
+        authService.resetPassword(request.token(), request.newPassword());
+        return Response.ok(new LoginResponse(false, "Senha redefinida com sucesso", false)).build();
     }
 }

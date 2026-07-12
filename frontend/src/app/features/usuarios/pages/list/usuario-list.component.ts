@@ -11,6 +11,14 @@ import { UsuarioService } from '../../services/usuario.service';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './usuario-list.component.html',
+  styles: [
+    `
+      tr.row--inactive td:not(.cell-actions):not(.cell-status) {
+        color: var(--text-subtle);
+        text-decoration: line-through;
+      }
+    `,
+  ],
 })
 export class UsuarioListComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
@@ -53,7 +61,7 @@ export class UsuarioListComponent implements OnInit {
     return this.departamentos().get(id) ?? `#${id}`;
   }
 
-  remove(usuario: Usuario): void {
+  desativar(usuario: Usuario): void {
     if (!confirm(`Desativar o usuário "${usuario.name}"?`)) {
       return;
     }
@@ -61,6 +69,24 @@ export class UsuarioListComponent implements OnInit {
       next: () => this.load(),
       error: (err) => this.error.set(extractApiError(err, 'Não foi possível desativar o usuário.')),
     });
+  }
+
+  ativar(usuario: Usuario): void {
+    this.error.set(null);
+    this.usuarioService
+      .update(usuario.id, {
+        name: usuario.name,
+        email: usuario.email,
+        perfil: usuario.perfil,
+        departamentoId: usuario.departamentoId,
+        instituicaoId: usuario.instituicaoId,
+        cargo: usuario.cargo,
+        active: true,
+      })
+      .subscribe({
+        next: () => this.load(),
+        error: (err) => this.error.set(extractApiError(err, 'Não foi possível reativar o usuário.')),
+      });
   }
 
   resetSenha(usuario: Usuario): void {

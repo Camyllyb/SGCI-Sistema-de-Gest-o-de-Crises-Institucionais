@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { ToastService } from '../../../../core/services/toast.service';
 import { extractApiError } from '../../../../core/utils/http-error';
 import { Campus } from '../../../campi/models/campus.model';
 import { CampusService } from '../../../campi/services/campus.service';
@@ -27,6 +28,7 @@ export class CriseFormComponent implements OnInit {
   private readonly cenarioService = inject(CenarioService);
   private readonly departamentoService = inject(DepartamentoService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly tipos = signal<TipoCrise[]>([]);
   readonly campi = signal<Campus[]>([]);
@@ -54,13 +56,28 @@ export class CriseFormComponent implements OnInit {
     this.departamentoService.listAll().subscribe((data) => this.departamentos.set(data));
   }
 
-  onSubmit(): void {
+  onSubmit(form: NgForm): void {
+    // Previne envio duplicado enquanto uma requisição está em andamento.
+    if (this.saving()) {
+      return;
+    }
+    if (form.invalid) {
+      form.control.markAllAsTouched();
+      this.error.set('Revise os campos destacados antes de continuar.');
+      return;
+    }
+
     this.saving.set(true);
     this.error.set(null);
     this.criseService.create(this.model).subscribe({
-      next: () => this.router.navigate(['/crises']),
+      next: () => {
+        this.toast.success('Crise cadastrada com sucesso.');
+        this.router.navigate(['/crises']);
+      },
       error: (err) => {
-        this.error.set(extractApiError(err, 'Não foi possível cadastrar a crise. Verifique os campos e tente novamente.'));
+        this.error.set(
+          extractApiError(err, 'Não foi possível cadastrar a crise. Verifique os campos e tente novamente.'),
+        );
         this.saving.set(false);
       },
     });

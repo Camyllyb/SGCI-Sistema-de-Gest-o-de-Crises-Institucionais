@@ -11,6 +11,8 @@ export interface Crise {
   campusId: number;
   cenarioId: number | null;
   departamentoId: number;
+  createdBy: number | null;
+  createdByName: string | null;
   active: boolean;
   createdAt: string;
 }

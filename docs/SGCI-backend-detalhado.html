@@ -61,7 +61,7 @@
     <span class="chip">PostgreSQL + Flyway</span>
     <span class="chip">SmallRye JWT</span>
   </div>
-  <div style="margin-top:20px; font-size:12px; color:var(--muted);">Gerado em 06/07/2026</div>
+  <div style="margin-top:20px; font-size:12px; color:var(--muted);">Atualizado em 12/07/2026</div>
 </div>
 
 <!-- SUMÁRIO -->
@@ -80,8 +80,9 @@
   <li>Segurança — JWT em cookie, passo a passo</li>
   <li>Auditoria automática por filtro de resposta</li>
   <li>Tratamento de exceções</li>
-  <li>Migrações Flyway (V1–V8)</li>
+  <li>Migrações Flyway (V1–V10)</li>
   <li>Ciclo de vida completo de uma crise (walkthrough)</li>
+  <li>Área do usuário (perfil COMUM): primeiro acesso, recuperação de senha e posse de crises</li>
 </ol>
 </div>
 
@@ -115,12 +116,12 @@ Repository como <strong>DAO</strong>, deixando a separação de responsabilidade
 <div class="tree">br.com.crisismanagement
 ├─ config/        DataSeeder                     (bootstrap de dados)
 ├─ controllers/   11 resources REST
-├─ dto/           records Request / Response
-├─ entities/      9 entidades  +  enums/ (4)
-├─ exceptions/    InvalidCredentialsException + Mapper
+├─ dto/           records Request / Response  (+ ErrorResponse padrão)
+├─ entities/      10 entidades  +  enums/ (4)
+├─ exceptions/    InvalidCredentialsException + 3 ExceptionMappers
 ├─ repositories/  10 DAOs Panache
 ├─ security/      AuthCookieFactory · AuditoriaLogFilter
-└─ services/      11 BOs</div>
+└─ services/      12 BOs  +  PasswordGenerator (util)</div>
 </section>
 
 <!-- 2 -->
@@ -152,7 +153,16 @@ mp.jwt.token.cookie=<span class="a">jwt</span>
 <span class="c"># CORS para o dev server Angular (credenciais on = cookie cruza origens)</span>
 quarkus.http.cors.enabled=true
 quarkus.http.cors.origins=http://localhost:4200
-quarkus.http.cors.access-control-allow-credentials=true</code></pre>
+quarkus.http.cors.methods=GET,POST,PUT,PATCH,DELETE,OPTIONS
+quarkus.http.cors.headers=Content-Type,Authorization
+quarkus.http.cors.access-control-allow-credentials=true
+
+<span class="c"># E-mail transacional (senha temporária e link de recuperação). mock=true → só loga no console</span>
+quarkus.mailer.from=${MAIL_FROM:no-reply@sgci.local}
+quarkus.mailer.host=${MAIL_HOST:smtp.gmail.com}
+quarkus.mailer.port=${MAIL_PORT:<span class="a">587</span>}
+quarkus.mailer.mock=${MAIL_MOCK:<span class="a">true</span>}
+app.frontend.url=${FRONTEND_URL:http://localhost:4200}</code></pre>
 <div class="note"><b>Combinação-chave:</b> <code>database.generation=validate</code> + <code>migrate-at-start=true</code>
 significa que o Flyway é a única fonte de verdade do schema, e o Hibernate apenas confere, no start, que as
 entidades batem com as tabelas. Se divergirem, a aplicação nem sobe — um mecanismo de segurança.</div>
@@ -189,6 +199,8 @@ entidades batem com as tabelas. Se divergirem, a aplicação nem sobe — um mec
 <tr><td>ADMIN</td><td><code>admin@crisis.local</code></td><td><code>Admin@123</code></td><td>—</td></tr>
 <tr><td>COMUM</td><td><code>usuario@crisis.local</code></td><td><code>Comum@123</code></td><td>1º cadastrado (CTI)</td></tr>
 </table>
+<p class="lead">Os usuários semeados nascem com <code>mustChangePassword=false</code> (a coluna tem
+<code>DEFAULT FALSE</code>) — a flag de troca obrigatória vale para contas criadas depois, sem senha explícita.</p>
 </section>
 
 <!-- 4 -->
@@ -206,14 +218,15 @@ texto (<code>@Enumerated(EnumType.STRING)</code>). Repare que as FKs são <code>
     <span class="k">@Enumerated</span>(EnumType.STRING) <span class="k">public</span> NivelCriticidade nivel;
     <span class="k">public</span> Long tipoCriseId;   <span class="k">public</span> Long campusId;       <span class="c">// FK por id</span>
     <span class="k">public</span> Long cenarioId;     <span class="k">public</span> Long departamentoId;  <span class="c">// (não @ManyToOne)</span>
+    <span class="k">public</span> Long createdBy;      <span class="c">// FK users: quem cadastrou (nulo pré-V10)</span>
     <span class="k">public boolean</span> active;    <span class="k">public</span> LocalDateTime createdAt;
 }</code></pre>
 
 <h3>Catálogo de entidades</h3>
 <table>
 <tr><th>Entidade / Tabela</th><th>Campos</th></tr>
-<tr><td><b>User</b> · <code>users</code></td><td>id, name, email (único), password (BCrypt), perfil, departamentoId?, active, createdAt</td></tr>
-<tr><td><b>Crise</b> · <code>crises</code></td><td>id, titulo, descricao, status, nivel, tipoCriseId, campusId, cenarioId?, departamentoId, active, createdAt</td></tr>
+<tr><td><b>User</b> · <code>users</code></td><td>id, name, email (único), password (BCrypt), perfil, departamentoId?, instituicaoId?, cargo?, active, mustChangePassword, resetToken?, resetTokenExpiresAt?, createdAt</td></tr>
+<tr><td><b>Crise</b> · <code>crises</code></td><td>id, titulo, descricao, status, nivel, tipoCriseId, campusId, cenarioId?, departamentoId, createdBy? (quem cadastrou), active, createdAt</td></tr>
 <tr><td><b>AcaoCrise</b> · <code>acoes_crise</code></td><td>id, descricao, tipo, criseId, usuarioId, createdAt</td></tr>
 <tr><td><b>RelatorioCrise</b> · <code>relatorios_crise</code></td><td>id, titulo, resumoOcorrido, impactosIdentificados?, acoesRealizadas?, resultadoFinal?, recomendacoes?, criseId (único), usuarioId, createdAt</td></tr>
 <tr><td><b>Instituicao</b> · <code>instituicoes</code></td><td>id, nome, sigla, active, createdAt</td></tr>
@@ -247,14 +260,22 @@ adicionar um perfil novo aqui já o torna utilizável nas anotações de seguran
 <p>Cada repositório implementa <code>PanacheRepository&lt;T&gt;</code>, herdando <code>persist</code>,
 <code>findByIdOptional</code>, <code>count</code>, <code>list</code> etc. Só os métodos específicos de consulta são escritos.</p>
 
-<h4>UserRepository — busca por e-mail (usada no login e na unicidade)</h4>
+<h4>UserRepository — busca por e-mail e por token de recuperação</h4>
 <pre><code><span class="k">public</span> Optional&lt;User&gt; findByEmail(String email) {
     <span class="k">return</span> find(<span class="s">"email"</span>, email).firstResultOptional();
 }
+<span class="k">public</span> Optional&lt;User&gt; findByResetToken(String resetToken) {   <span class="c">// recuperação de senha</span>
+    <span class="k">return</span> find(<span class="s">"resetToken"</span>, resetToken).firstResultOptional();
+}
 <span class="k">public</span> List&lt;User&gt; listAllOrdered() { <span class="k">return</span> list(<span class="s">"order by name"</span>); }</code></pre>
 
-<h4>CriseRepository — contagens para o dashboard</h4>
+<h4>CriseRepository — contagens e visão por dono</h4>
 <pre><code><span class="k">public</span> List&lt;Crise&gt; listAllOrdered() { <span class="k">return</span> list(<span class="s">"order by createdAt desc"</span>); }
+<span class="c">// Crises cadastradas por um usuário específico (visão do perfil COMUM)</span>
+<span class="k">public</span> List&lt;Crise&gt; listByCreator(Long createdBy) {
+    <span class="k">return</span> list(<span class="s">"createdBy = ?1 order by createdAt desc"</span>, createdBy);
+}
+<span class="k">public long</span> countByCreator(Long createdBy) { <span class="k">return</span> count(<span class="s">"createdBy = ?1"</span>, createdBy); }
 <span class="k">public long</span> countByStatus(StatusCrise status) { <span class="k">return</span> count(<span class="s">"status = ?1"</span>, status); }
 <span class="k">public long</span> countByNivel(NivelCriticidade nivel)  { <span class="k">return</span> count(<span class="s">"nivel = ?1"</span>, nivel); }</code></pre>
 
@@ -274,8 +295,8 @@ adicionar um perfil novo aqui já o torna utilizável nas anotações de seguran
 <h4>Métodos por repositório</h4>
 <table>
 <tr><th>Repository</th><th>Métodos além do CRUD Panache</th></tr>
-<tr><td><code>UserRepository</code></td><td><code>findByEmail</code>, <code>listAllOrdered</code></td></tr>
-<tr><td><code>CriseRepository</code></td><td><code>listAllOrdered</code>, <code>countByStatus</code>, <code>countByNivel</code></td></tr>
+<tr><td><code>UserRepository</code></td><td><code>findByEmail</code>, <code>findByResetToken</code>, <code>listAllOrdered</code></td></tr>
+<tr><td><code>CriseRepository</code></td><td><code>listAllOrdered</code>, <code>listByCreator</code>, <code>countByCreator</code>, <code>countByStatus</code>, <code>countByNivel</code></td></tr>
 <tr><td><code>AcaoCriseRepository</code></td><td><code>listByCrise</code> (por crise, mais recente primeiro)</td></tr>
 <tr><td><code>RelatorioCriseRepository</code></td><td><code>listAllOrdered</code>, <code>existsByCrise</code></td></tr>
 <tr><td><code>AuditoriaRepository</code></td><td><code>search</code>, <code>distinctEntidades/Acoes/Usuarios</code></td></tr>
@@ -292,19 +313,77 @@ como as entidades são <em>managed</em> dentro da transação, <strong>alterar u
 preciso chamar <code>persist</code> no <code>update</code>.</p>
 
 <h3>7.1 CriseService — o coração do domínio</h3>
-<p><b>Criar</b>: a crise sempre nasce <code>ABERTA</code> e ativa, independentemente do que o cliente enviar:</p>
+<p><b>Criar</b>: a crise sempre nasce <code>ABERTA</code> e ativa; além disso o servidor grava o <b>dono</b>
+(<code>createdBy</code>) a partir do usuário do JWT — é ele que habilita a "posse" das crises:</p>
 <pre><code><span class="k">@Transactional</span>
 <span class="k">public</span> CriseResponse create(CriseRequest request) {
+    validarReferencias(request);
+    User autor = usuarioAtual();             <span class="c">// resolvido do subject do JWT</span>
     Crise crise = <span class="k">new</span> Crise();
     crise.titulo = request.titulo();  crise.descricao = request.descricao();
     crise.nivel = request.nivel();    crise.tipoCriseId = request.tipoCriseId();
     crise.campusId = request.campusId(); crise.cenarioId = request.cenarioId();
     crise.departamentoId = request.departamentoId();
+    crise.createdBy = autor.id;              <span class="c">// dono da crise (posse)</span>
     crise.status = StatusCrise.<span class="a">ABERTA</span>;   <span class="c">// forçado pelo servidor</span>
     crise.active = <span class="k">true</span>;
     crise.createdAt = LocalDateTime.now();
     criseRepository.persist(crise);
-    <span class="k">return</span> CriseResponse.from(crise);
+    <span class="k">return</span> CriseResponse.from(crise, autor.name);
+}</code></pre>
+
+<p><b>Listagem e detalhe são <em>role-aware</em></b>: o <code>ADMIN</code> enxerga todas as crises; o
+<code>COMUM</code> só as que ele mesmo cadastrou. O acesso a uma crise específica passa por um helper
+<code>getAcessivel</code> que lança <code>ForbiddenException</code> (403) se um <code>COMUM</code> tentar abrir a
+crise de outra pessoa:</p>
+<pre><code><span class="k">public</span> List&lt;CriseResponse&gt; listAll() {
+    User atual = usuarioAtual();
+    List&lt;Crise&gt; crises = atual.perfil == PerfilUsuario.COMUM
+            ? criseRepository.listByCreator(atual.id)   <span class="c">// COMUM: só as próprias</span>
+            : criseRepository.listAllOrdered();         <span class="c">// ADMIN: todas</span>
+    Map&lt;Long,String&gt; nomes = nomesUsuarios(crises.stream().map(c -&gt; c.createdBy).toList());
+    <span class="k">return</span> crises.stream().map(c -&gt; CriseResponse.from(c, nomes.get(c.createdBy))).toList();
+}
+<span class="k">private</span> Crise getAcessivel(Long id) {          <span class="c">// usado em findById / listAcoes / addAcao</span>
+    Crise crise = getOrThrow(id);
+    User atual = usuarioAtual();
+    <span class="k">if</span> (atual.perfil == PerfilUsuario.COMUM &amp;&amp; !atual.id.equals(crise.createdBy))
+        <span class="k">throw new</span> ForbiddenException(<span class="s">"Você não tem acesso a esta crise."</span>);   <span class="c">// 403</span>
+    <span class="k">return</span> crise;
+}</code></pre>
+
+<p><b>Resolução de nomes em lote</b>: as respostas exibem nomes legíveis — <code>createdByName</code> na crise e
+<code>usuarioNome</code> em cada ação — resolvidos por <b>uma única consulta</b> (<code>id in ?1</code>) sobre o
+conjunto de ids:</p>
+<pre><code><span class="k">private</span> Map&lt;Long,String&gt; nomesUsuarios(Collection&lt;Long&gt; ids) {
+    List&lt;Long&gt; distintos = ids.stream().filter(Objects::nonNull).distinct().toList();
+    <span class="k">if</span> (distintos.isEmpty()) <span class="k">return new</span> HashMap&lt;&gt;();
+    <span class="k">return</span> userRepository.list(<span class="s">"id in ?1"</span>, distintos).stream()
+            .collect(Collectors.toMap(u -&gt; u.id, u -&gt; u.name, (a, b) -&gt; a, HashMap::<span class="k">new</span>));
+}</code></pre>
+<div class="note"><b>Armadilha real (resolvida):</b> o mapa de nomes usa <code>HashMap</code> de propósito — e
+<b>nunca</b> <code>Map.of()</code>. Crises anteriores à V10 têm <code>createdBy</code> nulo, e o resolvedor é
+consultado com <code>nomes.get(null)</code>. Um <code>Map.of()</code> (mapa imutável do JDK) lança
+<code>NullPointerException</code> em <code>get(null)</code>; o <code>HashMap</code> é tolerante a chave nula e
+apenas devolve <code>null</code>.</div>
+
+<p><b>Registrar ação</b> (hoje <b>exclusivo do ADMIN</b> — o endpoint <code>POST /{id}/acoes</code> passou a
+<code>@RolesAllowed("ADMIN")</code>): o autor sai do JWT e a crise é carregada por <code>getAcessivel</code>. A
+trava de departamento do <code>COMUM</code> permanece no BO como defesa em profundidade, mas na prática o
+<code>COMUM</code> nem alcança o método:</p>
+<pre><code><span class="k">@Transactional</span>
+<span class="k">public</span> AcaoCriseResponse addAcao(Long criseId, AcaoCriseRequest request) {
+    Crise crise = getAcessivel(criseId);
+    User autor = usuarioAtual();             <span class="c">// autor = subject do JWT</span>
+    <span class="c">// defesa em profundidade: COMUM só atuaria no próprio departamento</span>
+    <span class="k">if</span> (autor.perfil == PerfilUsuario.COMUM &amp;&amp; !crise.departamentoId.equals(autor.departamentoId))
+        <span class="k">throw new</span> ForbiddenException(<span class="s">"Você só pode registrar ações em crises do seu departamento."</span>);
+    AcaoCrise acao = <span class="k">new</span> AcaoCrise();
+    acao.descricao = request.descricao(); acao.tipo = request.tipo();
+    acao.criseId = crise.id; acao.usuarioId = autor.id;
+    acao.createdAt = LocalDateTime.now();
+    acaoCriseRepository.persist(acao);
+    <span class="k">return</span> AcaoCriseResponse.from(acao, autor.name);
 }</code></pre>
 
 <p><b>Mudar status</b>: uma crise <code>ENCERRADA</code> é terminal — não muda mais:</p>
@@ -314,28 +393,7 @@ preciso chamar <code>persist</code> no <code>update</code>.</p>
     <span class="k">if</span> (crise.status == StatusCrise.ENCERRADA)
         <span class="k">throw new</span> BadRequestException(<span class="s">"Não é possível alterar o status de uma crise encerrada."</span>);
     crise.status = novoStatus;               <span class="c">// persistido pela transação</span>
-    <span class="k">return</span> CriseResponse.from(crise);
-}</code></pre>
-
-<p><b>Registrar ação</b>: a regra de negócio mais importante — o usuário <code>COMUM</code> só atua no
-próprio departamento; o autor sai do JWT:</p>
-<pre><code><span class="k">@Transactional</span>
-<span class="k">public</span> AcaoCriseResponse addAcao(Long criseId, AcaoCriseRequest request) {
-    Crise crise = getOrThrow(criseId);
-    User autor = usuarioAtual();             <span class="c">// resolvido do subject do JWT</span>
-    <span class="k">if</span> (autor.perfil == PerfilUsuario.COMUM
-            &amp;&amp; !crise.departamentoId.equals(autor.departamentoId))
-        <span class="k">throw new</span> ForbiddenException(<span class="s">"Você só pode registrar ações em crises do seu departamento."</span>);
-    AcaoCrise acao = <span class="k">new</span> AcaoCrise();
-    acao.descricao = request.descricao(); acao.tipo = request.tipo();
-    acao.criseId = crise.id; acao.usuarioId = autor.id;
-    acao.createdAt = LocalDateTime.now();
-    acaoCriseRepository.persist(acao);
-    <span class="k">return</span> AcaoCriseResponse.from(acao);
-}
-<span class="k">private</span> User usuarioAtual() {
-    Long id = Long.valueOf(jsonWebToken.getSubject());
-    <span class="k">return</span> userRepository.findByIdOptional(id).orElseThrow(...);
+    <span class="k">return</span> CriseResponse.from(crise, nomeUsuario(crise.createdBy));
 }</code></pre>
 
 <h3>7.2 RelatorioCriseService — relatório único e tardio</h3>
@@ -357,7 +415,14 @@ próprio departamento; o autor sai do JWT:</p>
 <h3>7.3 UsuarioService — CRUD administrativo com salvaguardas</h3>
 <ul>
   <li><b>E-mail único</b> na criação e na edição (excluindo o próprio registro).</li>
-  <li><b>Senha</b>: obrigatória ao criar; na edição, vazia/nula mantém a atual, preenchida gera novo hash BCrypt.</li>
+  <li><b>Senha</b>: quando informada, tem no mínimo 8 caracteres (Bean Validation) e é hasheada em BCrypt,
+  zerando <code>mustChangePassword</code>; na edição, vazia/nula mantém a senha atual.</li>
+  <li><b>Primeiro acesso</b>: no <code>create</code> <b>sem senha</b>, o BO gera uma senha temporária
+  (<code>PasswordGenerator</code>), marca <code>mustChangePassword=true</code> e envia por e-mail
+  (<code>EmailService.enviarSenhaTemporaria</code>). O envio é resiliente: se o SMTP falhar, a conta fica criada
+  e o admin pode reenviar via <code>reset-senha</code>.</li>
+  <li><b>Perfil estendido</b>: <code>create</code> e <code>update</code> também gravam <code>cargo</code> e
+  <code>instituicaoId</code> (além de <code>departamentoId</code>).</li>
   <li><b>Auto-proteção</b>: não é possível desativar o próprio usuário.</li>
 </ul>
 <pre><code><span class="k">@Transactional</span>
@@ -390,6 +455,67 @@ Exemplo do <code>CampusService.update</code> — sem <code>persist</code>:</p>
     campus.instituicaoId = request.instituicaoId();
     <span class="k">return</span> CampusResponse.from(campus); <span class="c">// flush automático no fim da transação</span>
 }</code></pre>
+
+<h3>7.6 AuthService — perfil e recuperação de senha</h3>
+<p>Além de emitir o token no login (ver §10), o <code>AuthService</code> concentra a "Área do usuário": consulta de
+perfil, troca de senha autenticada e o fluxo público de recuperação por e-mail.</p>
+
+<p><b><code>getProfile()</code></b> — devolve um <code>ProfileResponse</code> com os nomes de departamento e
+instituição já resolvidos, além do <code>cargo</code>:</p>
+<pre><code><span class="k">public</span> ProfileResponse getProfile() {
+    User user = usuarioAutenticado();
+    String departamentoNome = user.departamentoId == <span class="k">null</span> ? <span class="k">null</span>
+            : departamentoRepository.findByIdOptional(user.departamentoId).map(d -&gt; d.nome).orElse(<span class="k">null</span>);
+    String instituicaoNome  = user.instituicaoId == <span class="k">null</span> ? <span class="k">null</span>
+            : instituicaoRepository.findByIdOptional(user.instituicaoId).map(i -&gt; i.nome).orElse(<span class="k">null</span>);
+    <span class="k">return new</span> ProfileResponse(user.id, user.name, user.email, user.perfil, user.cargo,
+            user.departamentoId, departamentoNome, user.instituicaoId, instituicaoNome);
+}</code></pre>
+
+<p><b><code>changePassword()</code></b> — valida a senha atual, exige que a nova seja diferente, zera a flag de troca
+obrigatória e reemite o token (o controller regrava o cookie <code>jwt</code>):</p>
+<pre><code><span class="k">@Transactional</span>
+<span class="k">public</span> String changePassword(String currentPassword, String newPassword) {
+    <span class="c">// ... carrega o usuário do subject do JWT ...</span>
+    <span class="k">if</span> (!BcryptUtil.matches(currentPassword, user.password))
+        <span class="k">throw new</span> BadRequestException(<span class="s">"Senha atual incorreta."</span>);
+    <span class="k">if</span> (BcryptUtil.matches(newPassword, user.password))
+        <span class="k">throw new</span> BadRequestException(<span class="s">"A nova senha deve ser diferente da atual."</span>);
+    user.password = BcryptUtil.bcryptHash(newPassword);
+    user.mustChangePassword = <span class="k">false</span>;        <span class="c">// primeira troca zera a flag</span>
+    <span class="k">return</span> issueToken(user);                  <span class="c">// reemite o cookie jwt</span>
+}</code></pre>
+
+<p><b><code>requestPasswordReset(email)</code></b> — gera um token aleatório <b>Base64url de 32 bytes</b>, guarda apenas
+o <b>SHA-256</b> do token (nunca o valor cru) com expiração de 30 minutos e dispara o e-mail com o link. A resposta
+ao cliente é sempre neutra — <b>não revela se o e-mail existe</b> (anti-enumeração de contas):</p>
+<pre><code><span class="k">@Transactional</span>
+<span class="k">public void</span> requestPasswordReset(String email) {
+    userRepository.findByEmail(email).filter(u -&gt; u.active).ifPresent(user -&gt; {
+        String token = gerarToken();          <span class="c">// 32 bytes aleatórios → Base64url</span>
+        user.resetToken = sha256(token);       <span class="c">// guarda só o HASH do token</span>
+        user.resetTokenExpiresAt = LocalDateTime.now().plusMinutes(<span class="a">30</span>);
+        emailService.enviarLinkRecuperacao(user.name, user.email, token, <span class="a">30</span>);
+    });
+    <span class="c">// sem else / sem exceção: o chamador recebe sempre a mesma resposta</span>
+}</code></pre>
+
+<p><b><code>resetPassword(token, novaSenha)</code></b> — localiza o usuário pelo hash do token, valida a expiração,
+troca a senha (zerando também <code>mustChangePassword</code>) e limpa o token (uso único):</p>
+<pre><code><span class="k">@Transactional</span>
+<span class="k">public void</span> resetPassword(String token, String newPassword) {
+    User user = userRepository.findByResetToken(sha256(token))
+            .filter(u -&gt; u.resetTokenExpiresAt != <span class="k">null</span>
+                    &amp;&amp; u.resetTokenExpiresAt.isAfter(LocalDateTime.now()))
+            .orElseThrow(() -&gt; <span class="k">new</span> BadRequestException(
+                    <span class="s">"Link de recuperação inválido ou expirado. Solicite um novo."</span>));
+    user.password = BcryptUtil.bcryptHash(newPassword);
+    user.mustChangePassword = <span class="k">false</span>;
+    user.resetToken = <span class="k">null</span>;  user.resetTokenExpiresAt = <span class="k">null</span>;   <span class="c">// uso único</span>
+}</code></pre>
+<div class="note"><b>Por que guardar só o hash?</b> Se o banco vazar, o valor armazenado (SHA-256) não permite
+reconstruir o link válido — o token em claro só existiu no e-mail do usuário. Combinado à expiração curta e ao
+uso único, isso limita a janela de ataque.</div>
 </section>
 
 <!-- 8 -->
@@ -406,20 +532,22 @@ A anotação de classe define a política padrão; métodos podem endurecê-la.<
 
     <span class="k">@GET</span> <span class="k">public</span> List&lt;CriseResponse&gt; listAll() { <span class="k">return</span> criseService.listAll(); }
 
-    <span class="k">@POST @RolesAllowed</span>(<span class="s">"ADMIN"</span>)
+    <span class="k">@POST @RolesAllowed</span>({<span class="s">"ADMIN"</span>,<span class="s">"COMUM"</span>})   <span class="c">// COMUM também cria crises</span>
     <span class="k">public</span> Response create(<span class="k">@Valid</span> CriseRequest request) {
         <span class="k">return</span> Response.status(CREATED).entity(criseService.create(request)).build();
     }
     <span class="k">@PATCH @Path</span>(<span class="s">"/{id}/status"</span>) <span class="k">@RolesAllowed</span>(<span class="s">"ADMIN"</span>)
     <span class="k">public</span> CriseResponse changeStatus(<span class="k">@PathParam</span>(<span class="s">"id"</span>) Long id, <span class="k">@Valid</span> StatusUpdateRequest r) { ... }
 
-    <span class="k">@POST @Path</span>(<span class="s">"/{id}/acoes"</span>) <span class="k">@RolesAllowed</span>({<span class="s">"ADMIN"</span>,<span class="s">"COMUM"</span>})
+    <span class="k">@POST @Path</span>(<span class="s">"/{id}/acoes"</span>) <span class="k">@RolesAllowed</span>(<span class="s">"ADMIN"</span>)   <span class="c">// registrar ação virou ADMIN-only</span>
     <span class="k">public</span> Response addAcao(...) { ... }
 }</code></pre>
 
 <h4>Política de acesso — resumo</h4>
-<p>Padrão do sistema: <b>leituras liberadas a qualquer autenticado; escritas só ADMIN</b>. Exceção: registrar
-ação de crise (ADMIN+COMUM). Usuários e auditoria são inteiramente ADMIN.</p>
+<p>Padrão do sistema: <b>leituras liberadas a qualquer autenticado; escritas só ADMIN</b>. Exceção: <b>criar
+crise</b> (ADMIN+COMUM). Crises e ações são <b>filtradas por posse</b> para o COMUM — ele só enxerga/acessa as
+próprias. <b>Registrar ação</b> e <b>relatórios</b> passaram a ser exclusivos do ADMIN. Usuários e auditoria
+seguem inteiramente ADMIN.</p>
 
 <h4>Mapa completo de endpoints</h4>
 <table>
@@ -427,15 +555,19 @@ ação de crise (ADMIN+COMUM). Usuários e auditoria são inteiramente ADMIN.</p
 <tr><td>POST <code>/auth/login</code></td><td><span class="badge b-public">PÚBLICO</span></td><td>Autentica, seta cookie <code>jwt</code></td></tr>
 <tr><td>POST <code>/auth/logout</code></td><td><span class="badge b-auth">AUTH</span></td><td>Expira o cookie</td></tr>
 <tr><td>GET <code>/auth/me</code></td><td><span class="badge b-auth">AUTH</span></td><td>Usuário da sessão</td></tr>
+<tr><td>GET <code>/auth/perfil</code></td><td><span class="badge b-auth">AUTH</span></td><td>Dados do perfil com nomes resolvidos</td></tr>
+<tr><td>POST <code>/auth/change-password</code></td><td><span class="badge b-auth">AUTH</span></td><td>Troca a própria senha (reemite o cookie)</td></tr>
+<tr><td>POST <code>/auth/forgot-password</code></td><td><span class="badge b-public">PÚBLICO</span></td><td>Inicia recuperação (resposta neutra 204)</td></tr>
+<tr><td>POST <code>/auth/reset-password</code></td><td><span class="badge b-public">PÚBLICO</span></td><td>Redefine a senha via token</td></tr>
 <tr><td>GET <code>/api/dashboard/resumo</code></td><td><span class="badge b-auth">AUTH</span></td><td>Indicadores</td></tr>
-<tr><td>GET <code>/api/crises</code> · <code>/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista / detalha</td></tr>
-<tr><td>POST <code>/api/crises</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Cria (nasce ABERTA)</td></tr>
+<tr><td>GET <code>/api/crises</code> · <code>/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista / detalha (ADMIN vê todas; COMUM só as próprias)</td></tr>
+<tr><td>POST <code>/api/crises</code></td><td><span class="badge b-all">ADMIN+COMUM</span></td><td>Cria (nasce ABERTA; grava o dono)</td></tr>
 <tr><td>PATCH <code>/api/crises/{id}/status</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Avança status</td></tr>
-<tr><td>GET <code>/api/crises/{id}/acoes</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista ações</td></tr>
-<tr><td>POST <code>/api/crises/{id}/acoes</code></td><td><span class="badge b-all">ADMIN+COMUM</span></td><td>Registra ação</td></tr>
-<tr><td>GET <code>/api/relatorios</code> · <code>/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista / detalha</td></tr>
+<tr><td>GET <code>/api/crises/{id}/acoes</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista ações (timeline)</td></tr>
+<tr><td>POST <code>/api/crises/{id}/acoes</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Registra ação</td></tr>
+<tr><td>GET <code>/api/relatorios</code> · <code>/{id}</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Lista / detalha</td></tr>
 <tr><td>POST <code>/api/relatorios</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Cria relatório</td></tr>
-<tr><td>GET/POST/PUT/DELETE <code>/api/usuarios</code></td><td><span class="badge b-admin">ADMIN</span></td><td>CRUD de usuários</td></tr>
+<tr><td>GET/POST/PUT/DELETE <code>/api/usuarios</code></td><td><span class="badge b-admin">ADMIN</span></td><td>CRUD de usuários (+ <code>reset-senha</code>)</td></tr>
 <tr><td>GET <code>/api/auditoria</code> · <code>/facets</code></td><td><span class="badge b-admin">ADMIN</span></td><td>Logs + filtros</td></tr>
 <tr><td>GET <code>/api/{ref}</code> · <code>/{id}</code></td><td><span class="badge b-auth">AUTH</span></td><td>Lista / detalha referência</td></tr>
 <tr><td>POST/PUT/DELETE <code>/api/{ref}</code></td><td><span class="badge b-admin">ADMIN</span></td><td>CRUD referência (soft-delete)</td></tr>
@@ -457,15 +589,21 @@ ação de crise (ADMIN+COMUM). Usuários e auditoria são inteiramente ADMIN.</p
               Long cenarioId,             <span class="c">// opcional (sem @NotNull)</span>
     <span class="k">@NotNull</span>  Long departamentoId) {}</code></pre>
 <p>Os <code>*Response</code> convertem a entidade via um método fábrica estático, garantindo que a entidade JPA
-nunca é serializada diretamente (e a senha jamais sai):</p>
-<pre><code><span class="k">public record</span> CriseResponse(Long id, String titulo, ..., LocalDateTime createdAt) {
-    <span class="k">public static</span> CriseResponse from(Crise c) {
-        <span class="k">return new</span> CriseResponse(c.id, c.titulo, ..., c.createdAt);
+nunca é serializada diretamente (e a senha jamais sai). O <code>CriseResponse</code> ganhou <code>createdBy</code> e
+<code>createdByName</code>; o <code>AcaoCriseResponse</code> ganhou <code>usuarioNome</code> — nomes resolvidos no BO:</p>
+<pre><code><span class="k">public record</span> CriseResponse(Long id, String titulo, ..., Long createdBy,
+                           String createdByName, boolean active, LocalDateTime createdAt) {
+    <span class="k">public static</span> CriseResponse from(Crise c, String createdByName) {
+        <span class="k">return new</span> CriseResponse(c.id, c.titulo, ..., c.createdBy, createdByName, c.active, c.createdAt);
     }
 }</code></pre>
-<p><b>UsuarioRequest</b> ilustra validações compostas: <code>@Email</code>, <code>@Size(min=6,max=100)</code> na senha
-(opcional na edição) e <code>@NotNull</code> no perfil. O <code>UsuarioResponse</code> expõe id, name, email, perfil,
-departamentoId, active, createdAt — <b>nunca</b> a senha.</p>
+<p><b>UsuarioRequest</b> ilustra validações compostas: <code>@Email</code>, <code>@Size(min=8,max=100)</code> na senha
+(opcional na edição), <code>@NotNull</code> no perfil e <code>@Size(max=100)</code> no cargo. O
+<code>UsuarioResponse</code> expõe id, name, email, perfil, departamentoId, instituicaoId, cargo, active,
+mustChangePassword, createdAt — <b>nunca</b> a senha.</p>
+<div class="note"><b>Política de senha (backend):</b> mínimo de <b>8 caracteres</b>, validado por Bean Validation em
+<code>ChangePasswordRequest</code>, <code>ResetPasswordRequest</code> e <code>UsuarioRequest</code> (todos
+<code>@Size(min=8, max=100)</code>).</div>
 </section>
 
 <!-- 10 -->
@@ -475,22 +613,24 @@ departamentoId, active, createdAt — <b>nunca</b> a senha.</p>
 <code>jwt</code></strong>. Como o JavaScript não acessa cookies HttpOnly, o token fica protegido contra roubo por XSS.</p>
 
 <h3>Emissão do token — <code>AuthService.login</code></h3>
-<pre><code><span class="k">public</span> String login(String email, String password) {
+<pre><code><span class="k">public</span> LoginResult login(String email, String password) {
     User user = userRepository.findByEmail(email).orElseThrow(InvalidCredentialsException::<span class="k">new</span>);
     <span class="k">if</span> (!user.active || !BcryptUtil.matches(password, user.password))
         <span class="k">throw new</span> InvalidCredentialsException();
-    <span class="k">return</span> Jwt.issuer(issuer)
-        .subject(user.id.toString())            <span class="c">// id → "quem sou"</span>
-        .claim(<span class="s">"name"</span>, user.name)
-        .claim(<span class="s">"email"</span>, user.email)
-        .groups(user.perfil.name())             <span class="c">// "ADMIN"/"COMUM" → role</span>
-        .expiresIn(TOKEN_EXPIRATION_SECONDS)     <span class="c">// 3600s = 1 hora</span>
-        .sign();                                 <span class="c">// assina com privateKey.pem (RS256)</span>
-}</code></pre>
+    <span class="k">return new</span> LoginResult(issueToken(user), user.mustChangePassword);  <span class="c">// front decide se força troca</span>
+}
+<span class="c">// issueToken(user):</span>
+Jwt.issuer(issuer)
+   .subject(user.id.toString())            <span class="c">// id → "quem sou"</span>
+   .claim(<span class="s">"name"</span>, user.name)
+   .claim(<span class="s">"email"</span>, user.email)
+   .groups(user.perfil.name())             <span class="c">// "ADMIN"/"COMUM" → role</span>
+   .expiresIn(TOKEN_EXPIRATION_SECONDS)     <span class="c">// 3600s = 1 hora</span>
+   .sign();                                 <span class="c">// assina com privateKey.pem (RS256)</span></code></pre>
 
 <h3>Entrega no cookie — <code>AuthController</code> + <code>AuthCookieFactory</code></h3>
 <pre><code><span class="c">// AuthController.login</span>
-<span class="k">return</span> Response.ok(<span class="k">new</span> LoginResponse(<span class="k">true</span>, <span class="s">"Login realizado com sucesso"</span>))
+<span class="k">return</span> Response.ok(<span class="k">new</span> LoginResponse(<span class="k">true</span>, <span class="s">"Login realizado com sucesso"</span>, result.mustChangePassword()))
     .cookie(authCookieFactory.buildLoginCookie(token, TOKEN_EXPIRATION_SECONDS)).build();
 
 <span class="c">// AuthCookieFactory — atributos de segurança do cookie</span>
@@ -511,13 +651,17 @@ departamentoId, active, createdAt — <b>nunca</b> a senha.</p>
 <h3>Camadas de autorização</h3>
 <table>
 <tr><th>Mecanismo</th><th>Onde</th><th>Efeito</th></tr>
-<tr><td><code>@PermitAll</code></td><td>login</td><td>Acesso anônimo</td></tr>
-<tr><td><code>@Authenticated</code></td><td>reads, /me, dashboard</td><td>Qualquer perfil logado</td></tr>
-<tr><td><code>@RolesAllowed("ADMIN")</code></td><td>escritas, usuários, auditoria</td><td>Só administrador (claim <code>groups</code>)</td></tr>
-<tr><td><code>@RolesAllowed({"ADMIN","COMUM"})</code></td><td>registrar ação</td><td>Ambos os perfis</td></tr>
-<tr><td>Regra no BO</td><td>CriseService.addAcao</td><td>COMUM restrito ao próprio departamento (403)</td></tr>
+<tr><td><code>@PermitAll</code></td><td>login, forgot-password, reset-password</td><td>Acesso anônimo</td></tr>
+<tr><td><code>@Authenticated</code></td><td>reads, /me, /perfil, change-password, dashboard</td><td>Qualquer perfil logado</td></tr>
+<tr><td><code>@RolesAllowed("ADMIN")</code></td><td>escritas, registrar ação, relatórios, usuários, auditoria</td><td>Só administrador (claim <code>groups</code>)</td></tr>
+<tr><td><code>@RolesAllowed({"ADMIN","COMUM"})</code></td><td>criar crise</td><td>Ambos os perfis</td></tr>
+<tr><td>Regra no BO</td><td>CriseService.getAcessivel</td><td>COMUM só acessa as próprias crises (403)</td></tr>
+<tr><td>Regra no BO</td><td>CriseService.addAcao</td><td>COMUM restrito ao próprio departamento (403, defesa em profundidade)</td></tr>
 <tr><td>Regra no BO</td><td>UsuarioService.deactivate</td><td>Bloqueia auto-desativação (400)</td></tr>
 </table>
+<div class="note"><b>Política de senha:</b> o backend exige no mínimo <b>8 caracteres</b> em toda definição/troca de
+senha (<code>ChangePasswordRequest</code>, <code>ResetPasswordRequest</code>, <code>UsuarioRequest</code>). O token de
+recuperação é guardado só como <b>SHA-256</b>, com expiração de 30 min e uso único.</div>
 </section>
 
 <!-- 11 -->
@@ -550,7 +694,8 @@ original já foi encerrada. Assim o log é gravado numa transação independente
 desfaz (nem depende de) a operação principal.</div>
 <p>O que fica registrado em cada linha de <code>auditoria_logs</code>: quem (id + nome do token), ação amigável,
 método HTTP, entidade derivada do path, recurso completo, status HTTP e data/hora. Índices em
-<code>data_hora DESC</code> e <code>entidade_afetada</code> aceleram as consultas com filtro.</p>
+<code>data_hora DESC</code> e <code>entidade_afetada</code> aceleram as consultas com filtro. Rotas de
+<code>auth</code> (incluindo troca/recuperação de senha) são deliberadamente ignoradas para evitar ruído.</p>
 </section>
 
 <!-- 12 -->
@@ -560,8 +705,8 @@ método HTTP, entidade derivada do path, recurso completo, status HTTP e data/ho
 <tr><th>Situação</th><th>Exceção</th><th>HTTP</th></tr>
 <tr><td>Login inválido (e-mail, inativo, senha)</td><td><code>InvalidCredentialsException</code> + <code>Mapper</code></td><td><b>401</b> com JSON <code>LoginResponse(false, msg)</code></td></tr>
 <tr><td>Entidade inexistente</td><td><code>NotFoundException</code></td><td>404</td></tr>
-<tr><td>Regra violada (crise encerrada, e-mail duplicado, relatório duplicado, auto-desativação, status inválido)</td><td><code>BadRequestException</code></td><td>400</td></tr>
-<tr><td>COMUM fora do departamento</td><td><code>ForbiddenException</code></td><td>403</td></tr>
+<tr><td>Regra violada (crise encerrada, e-mail duplicado, relatório duplicado, auto-desativação, status inválido, senha atual incorreta, nova senha igual à atual, link de recuperação inválido/expirado)</td><td><code>BadRequestException</code></td><td>400</td></tr>
+<tr><td>COMUM acessando crise que não é sua / fora do departamento</td><td><code>ForbiddenException</code></td><td>403</td></tr>
 <tr><td>Falha de validação de DTO</td><td>Bean Validation</td><td>400 automático</td></tr>
 </table>
 <pre><code><span class="k">@Provider</span>
@@ -578,7 +723,7 @@ do Quarkus/RESTEasy — só o caso de credenciais tem mapper próprio, para devo
 
 <!-- 13 -->
 <section class="pb">
-<h2>13. Migrações Flyway (V1–V8)</h2>
+<h2>13. Migrações Flyway (V1–V10)</h2>
 <p>O schema evolui de forma versionada e reproduzível. As migrações rodam em ordem no start.</p>
 <table>
 <tr><th>Versão</th><th>Conteúdo</th></tr>
@@ -590,31 +735,34 @@ do Quarkus/RESTEasy — só o caso de credenciais tem mapper próprio, para devo
 <tr><td><code>V6</code></td><td><b>relatorios_crise</b> — <code>crise_id</code> <b>UNIQUE</b> (1 relatório por crise).</td></tr>
 <tr><td><code>V7</code></td><td>Adiciona <b>perfil</b> (default 'COMUM') e <b>departamento_id</b> em users; promove o admin a ADMIN.</td></tr>
 <tr><td><code>V8</code></td><td><b>auditoria_logs</b> + índices <code>data_hora DESC</code> e <code>entidade_afetada</code>.</td></tr>
+<tr><td><code>V9</code></td><td>Adiciona <code>must_change_password BOOLEAN NOT NULL DEFAULT FALSE</code> em <b>users</b> (força a troca da senha temporária no 1º acesso).</td></tr>
+<tr><td><code>V10</code></td><td><b>Posse e perfil estendido</b>: <code>crises.created_by</code> (FK→users) + índice <code>idx_crises_created_by</code>; em users, <code>cargo</code>, <code>instituicao_id</code> (FK→instituicoes), <code>reset_token</code> e <code>reset_token_expires_at</code> (recuperação de senha).</td></tr>
 </table>
-<pre><code><span class="c">-- V6: garante 1 relatório por crise já no schema</span>
-CREATE TABLE relatorios_crise (
-    id         BIGSERIAL     PRIMARY KEY,
-    ...
-    crise_id   BIGINT  NOT NULL <span class="a">UNIQUE</span> REFERENCES crises (id),
-    usuario_id BIGINT  NOT NULL REFERENCES users (id),
-    created_at TIMESTAMP NOT NULL DEFAULT now()
-);</code></pre>
+<pre><code><span class="c">-- V10: dono da crise + dados de perfil + token de recuperação</span>
+ALTER TABLE crises ADD COLUMN created_by BIGINT REFERENCES users (id);
+CREATE INDEX idx_crises_created_by ON crises (created_by);
+
+ALTER TABLE users ADD COLUMN cargo                  VARCHAR(100);
+ALTER TABLE users ADD COLUMN instituicao_id         BIGINT REFERENCES instituicoes (id);
+ALTER TABLE users ADD COLUMN reset_token            VARCHAR(64);     <span class="c">-- SHA-256 (hex)</span>
+ALTER TABLE users ADD COLUMN reset_token_expires_at TIMESTAMP;</code></pre>
 </section>
 
 <!-- 14 -->
-<section>
+<section class="pb">
 <h2>14. Ciclo de vida completo de uma crise (walkthrough)</h2>
 <p>Juntando todas as camadas, veja o caminho de ponta a ponta:</p>
 <div class="tree"><span class="stepnum">1</span> LOGIN
    POST /auth/login  →  AuthService valida BCrypt  →  JWT no cookie jwt
 
-<span class="stepnum">2</span> ABERTURA (ADMIN)
-   POST /api/crises  →  @RolesAllowed(ADMIN)  →  CriseService.create()
-   status = ABERTA (forçado) ; AuditoriaLogFilter grava CRIAR/crises/201
+<span class="stepnum">2</span> ABERTURA (ADMIN ou COMUM)
+   POST /api/crises  →  @RolesAllowed({ADMIN,COMUM})  →  CriseService.create()
+   status = ABERTA (forçado) ; createdBy = autor (posse) ; AuditoriaLogFilter grava CRIAR/crises/201
 
-<span class="stepnum">3</span> ATUAÇÃO (ADMIN ou COMUM)
-   POST /api/crises/{id}/acoes  →  regra: COMUM só no próprio depto.
+<span class="stepnum">3</span> ATUAÇÃO (ADMIN)
+   POST /api/crises/{id}/acoes  →  @RolesAllowed(ADMIN) : só ADMIN registra ação
    nova AcaoCrise com autor = subject do JWT ; auditado
+   (COMUM lê a timeline em GET /acoes das próprias crises)
 
 <span class="stepnum">4</span> EVOLUÇÃO DO STATUS (ADMIN)
    PATCH /api/crises/{id}/status
@@ -627,10 +775,68 @@ CREATE TABLE relatorios_crise (
 <span class="stepnum">6</span> RASTREABILIDADE
    Cada POST/PUT/PATCH/DELETE gerou 1 linha em auditoria_logs
    consultável em /api/auditoria (só ADMIN)</div>
+</section>
+
+<!-- 15 -->
+<section class="pb">
+<h2>15. Área do usuário (perfil COMUM)</h2>
+<p class="lead">A "Área do usuário" reorganiza a experiência do perfil <code>COMUM</code> em torno de três pilares:
+onboarding por senha temporária, recuperação de senha autônoma e <b>posse das crises</b> que ele mesmo cadastra —
+com um endurecimento deliberado das permissões.</p>
+
+<h3>15.1 Primeiro acesso — senha temporária</h3>
+<p>Quando o admin cria um usuário <b>sem informar senha</b>, o <code>UsuarioService</code> gera uma senha temporária
+(<code>PasswordGenerator</code>), grava <code>mustChangePassword=true</code> e a envia por e-mail
+(<code>EmailService.enviarSenhaTemporaria</code>). No login, o backend devolve
+<code>mustChangePassword</code> no <code>LoginResponse</code>; o front trata isso como bloqueio até a primeira
+troca. A primeira chamada a <code>POST /auth/change-password</code> zera a flag e reemite o cookie <code>jwt</code>.</p>
+
+<h3>15.2 Recuperação de senha ("Esqueci minha senha")</h3>
+<p>Fluxo público em duas etapas, ambas <code>@PermitAll</code>:</p>
+<ul>
+  <li><code>POST /auth/forgot-password</code> — recebe o e-mail e responde sempre <b>204</b> (resposta neutra,
+  anti-enumeração). Se o e-mail existir e a conta estiver ativa, gera um token aleatório, guarda apenas o
+  <b>SHA-256</b> dele com expiração de <b>30 min</b> e dispara o e-mail com o link
+  <code>/redefinir-senha?token=...</code> (<code>EmailService.enviarLinkRecuperacao</code>).</li>
+  <li><code>POST /auth/reset-password</code> — recebe <code>token</code> + <code>newPassword</code>, valida o hash e a
+  expiração, troca a senha e <b>limpa o token</b> (uso único).</li>
+</ul>
+
+<h3>15.3 Posse de crises</h3>
+<p>A coluna <code>crises.created_by</code> (V10) marca o dono de cada crise. O <code>ADMIN</code> continua vendo e
+acessando todas; o <code>COMUM</code> só enxerga (<code>listByCreator</code>) e só acessa
+(<code>getAcessivel</code>) as que ele mesmo cadastrou — tentar abrir a crise de outra pessoa resulta em
+<code>403</code>. Crises anteriores à V10 têm <code>created_by</code> nulo (daí o cuidado com <code>HashMap</code>
+na resolução de nomes, §7.1).</p>
+
+<h3>15.4 Endurecimento das permissões do COMUM</h3>
+<p>O <code>COMUM</code> deixou de <b>registrar ações</b> (<code>POST /api/crises/{id}/acoes</code> virou
+<code>@RolesAllowed("ADMIN")</code>) e não acessa <b>relatórios</b> (o <code>RelatorioCriseController</code> inteiro
+é <code>@RolesAllowed("ADMIN")</code>, leitura e criação). Ele continua podendo <b>criar crises</b> e <b>ler a linha
+do tempo</b> (<code>GET /api/crises/{id}/acoes</code> segue <code>@Authenticated</code>) das próprias crises.</p>
+
+<h3>15.5 Política de senha</h3>
+<p>Toda definição/troca de senha exige no mínimo <b>8 caracteres</b> no backend
+(<code>ChangePasswordRequest</code>, <code>ResetPasswordRequest</code>, <code>UsuarioRequest</code>).</p>
+
+<h3>15.6 Mini-walkthrough</h3>
+<div class="tree">PRIMEIRO ACESSO
+  <span class="stepnum">1</span> ADMIN cria usuário SEM senha  →  UsuarioService gera senha temporária
+     mustChangePassword = true  ·  e-mail: enviarSenhaTemporaria(...)
+  <span class="stepnum">2</span> Usuário faz login  →  LoginResponse.mustChangePassword = true (front bloqueia)
+  <span class="stepnum">3</span> POST /auth/change-password (senha atual = temporária, nova ≠ atual)
+     zera mustChangePassword  ·  reemite o cookie jwt
+
+RECUPERAÇÃO DE SENHA
+  <span class="stepnum">1</span> POST /auth/forgot-password { email }  →  204 (resposta neutra)
+     token aleatório → e-mail /redefinir-senha?token=...
+     banco guarda SHA-256(token) + expiração (30 min)
+  <span class="stepnum">2</span> POST /auth/reset-password { token, newPassword }
+     valida hash + expiração  →  troca a senha, limpa o token (uso único)</div>
 
 <footer>
 SGCI — Sistema de Gestão de Crises Institucionais · Documentação técnica do backend ·
-Quarkus 3.37 / Java 21 · Hibernate ORM + Panache · PostgreSQL + Flyway · SmallRye JWT
+Quarkus 3.37 / Java 21 · Hibernate ORM + Panache · PostgreSQL + Flyway (V1–V10) · SmallRye JWT
 </footer>
 </section>
 

@@ -12,6 +12,8 @@ public record UsuarioResponse(
         String email,
         PerfilUsuario perfil,
         Long departamentoId,
+        Long instituicaoId,
+        String cargo,
         boolean active,
         boolean mustChangePassword,
         LocalDateTime createdAt) {
@@ -23,6 +25,8 @@ public record UsuarioResponse(
                 user.email,
                 user.perfil,
                 user.departamentoId,
+                user.instituicaoId,
+                user.cargo,
                 user.active,
                 user.mustChangePassword,
                 user.createdAt);

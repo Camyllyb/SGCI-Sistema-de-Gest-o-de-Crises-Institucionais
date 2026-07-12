@@ -3,7 +3,13 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 import { API_BASE_URL } from '../config/api.config';
-import { ChangePasswordRequest, LoginRequest, LoginResponse } from '../models/auth.model';
+import {
+  ChangePasswordRequest,
+  LoginRequest,
+  LoginResponse,
+  ResetPasswordRequest,
+} from '../models/auth.model';
+import { Profile } from '../models/profile.model';
 import { User } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +36,10 @@ export class AuthService {
     );
   }
 
+  getProfile(): Observable<Profile> {
+    return this.http.get<Profile>(`${this.baseUrl}/perfil`);
+  }
+
   changePassword(request: ChangePasswordRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.baseUrl}/change-password`, request).pipe(
       tap(() => {
@@ -39,5 +49,13 @@ export class AuthService {
         }
       }),
     );
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.baseUrl}/reset-password`, request);
   }
 }

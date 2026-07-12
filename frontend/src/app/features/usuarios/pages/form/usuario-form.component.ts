@@ -4,6 +4,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { Departamento } from '../../../departamentos/models/departamento.model';
 import { DepartamentoService } from '../../../departamentos/services/departamento.service';
+import { Instituicao } from '../../../instituicoes/models/instituicao.model';
+import { InstituicaoService } from '../../../instituicoes/services/instituicao.service';
 import { Perfil, UsuarioRequest } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
 
@@ -16,6 +18,7 @@ import { UsuarioService } from '../../services/usuario.service';
 export class UsuarioFormComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
   private readonly departamentoService = inject(DepartamentoService);
+  private readonly instituicaoService = inject(InstituicaoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -24,6 +27,7 @@ export class UsuarioFormComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly id = signal<number | null>(null);
   readonly departamentos = signal<Departamento[]>([]);
+  readonly instituicoes = signal<Instituicao[]>([]);
 
   readonly perfis: Perfil[] = ['ADMIN', 'COMUM'];
 
@@ -32,11 +36,14 @@ export class UsuarioFormComponent implements OnInit {
     email: '',
     perfil: 'COMUM',
     departamentoId: null,
+    instituicaoId: null,
+    cargo: null,
     active: true,
   };
 
   ngOnInit(): void {
     this.departamentoService.listAll().subscribe((data) => this.departamentos.set(data));
+    this.instituicaoService.listAll().subscribe((data) => this.instituicoes.set(data));
 
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
@@ -50,6 +57,8 @@ export class UsuarioFormComponent implements OnInit {
             email: data.email,
             perfil: data.perfil,
             departamentoId: data.departamentoId,
+            instituicaoId: data.instituicaoId,
+            cargo: data.cargo,
             active: data.active,
           };
           this.loading.set(false);

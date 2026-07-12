@@ -1,0 +1,294 @@
+<section class="page admin-dash">
+  <header class="page__header admin-dash__header">
+    <div class="page__heading">
+      <h1>Centro de Monitoramento</h1>
+      <span class="page__subtitle">Visão executiva das crises e da operação do SGCI</span>
+    </div>
+    <div class="page__actions">
+      <a class="btn-primary" routerLink="/crises/nova">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+        <span>Nova Crise</span>
+      </a>
+    </div>
+  </header>
+
+  @if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  }
+
+  @if (loading()) {
+    <div class="kpi-grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <span class="skeleton skeleton--card" style="height: 88px"></span>
+      }
+    </div>
+    <div class="dash-grid">
+      <span class="skeleton skeleton--card col-8" style="height: 340px"></span>
+      <span class="skeleton skeleton--card col-4" style="height: 340px"></span>
+      <span class="skeleton skeleton--card col-4" style="height: 260px"></span>
+      <span class="skeleton skeleton--card col-4" style="height: 260px"></span>
+      <span class="skeleton skeleton--card col-4" style="height: 260px"></span>
+    </div>
+  } @else {
+    <!-- ===================== KPIs (faixa de 6) ===================== -->
+    <div class="kpi-grid">
+      <article class="kpi-card kpi-card--primary">
+        <span class="kpi-card__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg></span>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Total de crises</span>
+          <span class="kpi-card__value">
+            {{ total() }}
+            @if (trendTotal().dir !== 'flat') {
+              <span class="trend" [class.trend--up]="trendTotal().dir === 'up'" [class.trend--down]="trendTotal().dir === 'down'">
+                {{ trendTotal().delta > 0 ? '+' : '' }}{{ trendTotal().delta }}
+              </span>
+            }
+          </span>
+          <span class="kpi-card__foot">{{ trendTotal().atual }} este mês</span>
+        </div>
+      </article>
+
+      <article class="kpi-card kpi-card--warning">
+        <span class="kpi-card__icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Em andamento</span>
+          <span class="kpi-card__value">{{ emAndamento() }}</span>
+          <span class="kpi-card__foot">{{ abertas() }} em aberto</span>
+        </div>
+      </article>
+
+      <article class="kpi-card kpi-card--danger">
+        <span class="kpi-card__icon"><svg class="icon" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg></span>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Críticas ativas</span>
+          <span class="kpi-card__value">{{ criticasAtivas() }}</span>
+          <span class="kpi-card__foot">Nível crítico em aberto</span>
+        </div>
+      </article>
+
+      <article class="kpi-card kpi-card--success">
+        <span class="kpi-card__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335" /><path d="m9 11 3 3L22 4" /></svg></span>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Resolvidas</span>
+          <span class="kpi-card__value">{{ resolvidas() }}</span>
+          <span class="kpi-card__foot">Inclui encerradas</span>
+        </div>
+      </article>
+
+      <article class="kpi-card kpi-card--info">
+        <span class="kpi-card__icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Tempo médio</span>
+          <span class="kpi-card__value">{{ tempoMedioLabel() }}</span>
+          <span class="kpi-card__foot">Abertura → relatório</span>
+        </div>
+      </article>
+
+      <article class="kpi-card kpi-card--primary">
+        <span class="kpi-card__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg></span>
+        <div class="kpi-card__body">
+          <span class="kpi-card__label">Taxa de resolução</span>
+          <span class="kpi-card__value">{{ taxaResolucao() }}%</span>
+          <span class="kpi-card__progress"><span class="kpi-card__progress-fill" [style.width.%]="taxaResolucao()"></span></span>
+        </div>
+      </article>
+    </div>
+
+    <!-- ===================== GRID PRINCIPAL (12 colunas) ===================== -->
+    <div class="dash-grid">
+      <!-- Linha: gráfico principal (8) + alertas (4) -->
+      <article class="panel col-8">
+        <header class="panel__head">
+          <h3>Evolução das crises</h3><span class="panel__hint">últimos 6 meses</span>
+        </header>
+        <div class="panel__body panel__body--chart"><app-line-chart [points]="evolucaoMensal()" /></div>
+      </article>
+
+      <article class="panel col-4">
+        <header class="panel__head">
+          <h3>Alertas do sistema</h3>
+        </header>
+        <ul class="alerts">
+          <li class="alert-item" [class.alert-item--ok]="criticasAtivas() === 0">
+            <span class="alert-item__icon alert-item--danger"><svg class="icon icon--sm" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4M12 17h.01" /></svg></span>
+            <span class="alert-item__label">Crises críticas ativas</span>
+            <a class="alert-item__count" routerLink="/crises">{{ criticasAtivas() }}</a>
+          </li>
+          <li class="alert-item" [class.alert-item--ok]="semResponsavel() === 0">
+            <span class="alert-item__icon alert-item--warning"><svg class="icon icon--sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M6 21v-1a6 6 0 0 1 12 0v1" /></svg></span>
+            <span class="alert-item__label">Crises sem responsável</span>
+            <a class="alert-item__count" routerLink="/crises">{{ semResponsavel() }}</a>
+          </li>
+          <li class="alert-item" [class.alert-item--ok]="usuariosInativos() === 0">
+            <span class="alert-item__icon alert-item--neutral"><svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
+            <span class="alert-item__label">Usuários inativos</span>
+            <a class="alert-item__count" routerLink="/usuarios">{{ usuariosInativos() }}</a>
+          </li>
+          <li class="alert-item" [class.alert-item--ok]="pendenciasAdmin() === 0">
+            <span class="alert-item__icon alert-item--info"><svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M12 8v4M12 16h.01" /><circle cx="12" cy="12" r="10" /></svg></span>
+            <span class="alert-item__label">Aguardando triagem</span>
+            <a class="alert-item__count" routerLink="/crises">{{ pendenciasAdmin() }}</a>
+          </li>
+          <li class="alert-item" [class.alert-item--ok]="relatoriosPendentes() === 0">
+            <span class="alert-item__icon alert-item--primary"><svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></svg></span>
+            <span class="alert-item__label">Relatórios pendentes</span>
+            <a class="alert-item__count" routerLink="/relatorios">{{ relatoriosPendentes() }}</a>
+          </li>
+        </ul>
+      </article>
+
+      <!-- Linha: status (4) + categoria (4) + departamento (4) -->
+      <article class="panel col-4">
+        <header class="panel__head"><h3>Por status</h3></header>
+        <div class="panel__body"><app-pie-chart [slices]="porStatus()" [size]="132" /></div>
+      </article>
+
+      <article class="panel col-4">
+        <header class="panel__head"><h3>Por categoria</h3></header>
+        <div class="panel__body">
+          <app-pie-chart [slices]="porCategoria()" [size]="132" [innerRadius]="0.62"
+                         [centerValue]="total().toString()" centerLabel="crises" />
+        </div>
+      </article>
+
+      <article class="panel col-4">
+        <header class="panel__head"><h3>Por departamento</h3></header>
+        <div class="panel__body"><app-bar-chart [bars]="porDepartamento()" /></div>
+      </article>
+
+      <!-- Linha: atividades (8) + ações rápidas (4) -->
+      <article class="panel col-8">
+        <header class="panel__head">
+          <h3>Últimas atividades</h3>
+          <a class="panel__link" routerLink="/auditoria">Ver auditoria</a>
+        </header>
+        @if (atividades().length === 0) {
+          <p class="empty">Nenhuma atividade registrada.</p>
+        } @else {
+          <ul class="activity">
+            @for (log of atividades(); track log.id) {
+              <li class="activity__item">
+                <span class="activity__icon activity__icon--{{ atividadeIcone(log) }}">
+                  @switch (atividadeIcone(log)) {
+                    @case ('plus') { <svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" /></svg> }
+                    @case ('edit') { <svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg> }
+                    @case ('trash') { <svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> }
+                    @default { <svg class="icon icon--sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /></svg> }
+                  }
+                </span>
+                <div class="activity__body">
+                  <p class="activity__text">
+                    <strong>{{ log.usuarioNome }}</strong> · {{ log.acao | lowercase }} {{ log.entidadeAfetada | lowercase }}
+                  </p>
+                  <span class="activity__meta">{{ log.dataHora | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <span class="badge badge--neutral activity__status">{{ log.statusResposta }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+
+      <article class="panel col-4">
+        <header class="panel__head"><h3>Ações rápidas</h3></header>
+        <div class="quick-actions">
+          <a class="quick-action" routerLink="/crises/nova">
+            <span class="quick-action__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M12 5v14" /></svg></span>
+            <span>Nova Crise</span>
+          </a>
+          <a class="quick-action" routerLink="/usuarios/novo">
+            <span class="quick-action__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg></span>
+            <span>Novo Usuário</span>
+          </a>
+          <a class="quick-action" routerLink="/instituicoes/novo">
+            <span class="quick-action__icon"><svg class="icon" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22" /><polygon points="12 2 20 7 4 7" /><line x1="6" x2="6" y1="18" y2="11" /><line x1="18" x2="18" y1="18" y2="11" /></svg></span>
+            <span>Nova Instituição</span>
+          </a>
+          <a class="quick-action" routerLink="/departamentos/novo">
+            <span class="quick-action__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M10 6h4M10 10h4M10 14h4" /></svg></span>
+            <span>Novo Departamento</span>
+          </a>
+          <a class="quick-action" routerLink="/relatorios/novo">
+            <span class="quick-action__icon"><svg class="icon" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4M9 15l2 2 4-4" /></svg></span>
+            <span>Gerar Relatório</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- Linha: tabela (12) -->
+      <article class="panel col-12">
+        <header class="panel__head">
+          <h3>Últimas crises</h3>
+          <a class="panel__link" routerLink="/crises">Ver todas</a>
+        </header>
+
+        <div class="filters filters--inline">
+          <div class="filters__search">
+            <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="search" class="form-control" placeholder="Buscar crise..."
+                   [ngModel]="search()" (ngModelChange)="search.set($event); resetPage()" />
+          </div>
+          <div class="filters__group">
+            <select class="form-control" aria-label="Status" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); resetPage()">
+              <option value="">Todos os status</option>
+              @for (s of statusOptions; track s) { <option [value]="s">{{ s.toLowerCase().replace('_', ' ') }}</option> }
+            </select>
+            <select class="form-control" aria-label="Prioridade" [ngModel]="nivelFilter()" (ngModelChange)="nivelFilter.set($event); resetPage()">
+              <option value="">Todas as prioridades</option>
+              @for (n of nivelOptions; track n) { <option [value]="n">{{ n.toLowerCase() }}</option> }
+            </select>
+            <select class="form-control" aria-label="Ordenar" [ngModel]="sort()" (ngModelChange)="sort.set($event)">
+              <option value="recentes">Mais recentes</option>
+              <option value="antigas">Mais antigas</option>
+              <option value="nivel">Maior prioridade</option>
+              <option value="titulo">Título (A–Z)</option>
+            </select>
+            @if (hasActiveFilters()) {
+              <button class="btn btn--ghost btn--sm" type="button" (click)="clearFilters()">Limpar</button>
+            }
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="data-table data-table--compact">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nome</th><th>Categoria</th><th>Prioridade</th><th>Status</th>
+                <th>Responsável</th><th>Instituição</th><th>Data</th><th class="cell-actions">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (crise of paged(); track crise.id) {
+                <tr>
+                  <td class="cell-id">#{{ crise.id }}</td>
+                  <td><a class="link" [routerLink]="['/crises', crise.id]">{{ crise.titulo }}</a></td>
+                  <td class="muted">{{ tipoNome(crise.tipoCriseId) }}</td>
+                  <td><span [class]="'badge badge--nivel-' + crise.nivel.toLowerCase()">{{ crise.nivel.toLowerCase() }}</span></td>
+                  <td><span [class]="'badge badge--' + crise.status.toLowerCase()">{{ crise.status.toLowerCase().replace('_', ' ') }}</span></td>
+                  <td class="muted">{{ crise.createdByName || '—' }}</td>
+                  <td class="muted">{{ instituicaoNome(crise.campusId) }}</td>
+                  <td class="muted">{{ crise.createdAt | date: 'dd/MM/yyyy' }}</td>
+                  <td class="cell-actions">
+                    <a class="btn btn--ghost btn--sm" [routerLink]="['/crises', crise.id]" title="Ver detalhes">Detalhes</a>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="9" class="empty">Nenhuma crise corresponde aos filtros.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (filtered().length > pageSize) {
+          <div class="pagination">
+            <span class="pagination__info">Página {{ safePage() + 1 }} de {{ totalPages() }} · {{ filtered().length }} resultado(s)</span>
+            <div class="pagination__controls">
+              <button class="btn btn--secondary btn--sm" type="button" [disabled]="safePage() === 0" (click)="prevPage()">Anterior</button>
+              <button class="btn btn--secondary btn--sm" type="button" [disabled]="safePage() >= totalPages() - 1" (click)="nextPage()">Próxima</button>
+            </div>
+          </div>
+        }
+      </article>
+    </div>
+  }
+</section>

@@ -57,6 +57,8 @@ public class UsuarioService {
         user.email = request.email();
         user.perfil = request.perfil();
         user.departamentoId = request.departamentoId();
+        user.instituicaoId = request.instituicaoId();
+        user.cargo = request.cargo();
         user.active = request.active() == null || request.active();
         user.createdAt = LocalDateTime.now();
 
@@ -107,6 +109,8 @@ public class UsuarioService {
         user.email = request.email();
         user.perfil = request.perfil();
         user.departamentoId = request.departamentoId();
+        user.instituicaoId = request.instituicaoId();
+        user.cargo = request.cargo();
         if (request.active() != null) {
             user.active = request.active();
         }

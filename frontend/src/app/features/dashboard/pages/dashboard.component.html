@@ -1,77 +1,111 @@
-<section class="page">
-  <header class="page__header">
-    <div class="page__heading">
-      <h1>Painel Geral</h1>
-      <span class="page__subtitle">Visão consolidada das crises institucionais</span>
-    </div>
-    <div class="page__actions">
-      <a class="btn-primary" routerLink="/crises/nova">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 12h14" />
-          <path d="M12 5v14" />
-        </svg>
-        <span>Nova Crise</span>
-      </a>
-    </div>
-  </header>
+@if (isAdmin()) {
+  <app-admin-dashboard />
+} @else {
+  <section class="page">
+    <header class="page__header">
+      <div class="page__heading">
+        <h1>Olá, {{ user()?.name }}</h1>
+        <span class="page__subtitle">Bem-vindo(a) ao painel de gestão de crises.</span>
+      </div>
+      <div class="page__actions">
+        <a class="btn-primary" routerLink="/crises/nova">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14" />
+            <path d="M12 5v14" />
+          </svg>
+          <span>Nova Crise</span>
+        </a>
+      </div>
+    </header>
 
-  @if (error(); as errorMessage) {
-    <p class="alert alert--error">{{ errorMessage }}</p>
-  }
+    @if (error(); as errorMessage) {
+      <p class="alert alert--error">{{ errorMessage }}</p>
+    }
 
-  @if (resumo(); as r) {
-    <div class="stats">
-      <article class="card-panel stat stat--total">
-        <div class="stat__top">
-          <span class="stat__label">Total de Crises</span>
-          <span class="stat__icon" aria-hidden="true">
-            <svg class="icon" viewBox="0 0 24 24">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </span>
+    @if (loading()) {
+      <div class="stats stats--comum">
+        @for (i of [1, 2, 3]; track i) {
+          <span class="skeleton skeleton--card"></span>
+        }
+      </div>
+    } @else {
+      <div class="stats stats--comum">
+        <article class="card-panel stat stat--total">
+          <div class="stat__top">
+            <span class="stat__label">Total de Crises</span>
+            <span class="stat__icon" aria-hidden="true">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+            </span>
+          </div>
+          <span class="stat__value">{{ totalCrises() }}</span>
+        </article>
+
+        <article class="card-panel stat stat--info">
+          <div class="stat__top">
+            <span class="stat__label">Em Aberto</span>
+            <span class="stat__icon" aria-hidden="true">
+              <svg class="icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+              </svg>
+            </span>
+          </div>
+          <span class="stat__value">{{ emAberto() }}</span>
+        </article>
+
+        <article class="card-panel stat stat--success">
+          <div class="stat__top">
+            <span class="stat__label">Encerradas</span>
+            <span class="stat__icon" aria-hidden="true">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M21.801 10A10 10 0 1 1 17 3.335" /><path d="m9 11 3 3L22 4" />
+              </svg>
+            </span>
+          </div>
+          <span class="stat__value">{{ encerradas() }}</span>
+        </article>
+      </div>
+
+      <article class="card-panel card--pad">
+        <div class="page__header" style="margin-bottom: var(--space-4)">
+          <h2>Minhas últimas crises</h2>
+          @if (totalCrises() > 0) {
+            <a class="link" routerLink="/crises">Ver todas</a>
+          }
         </div>
-        <span class="stat__value">{{ r.totalCrises }}</span>
-      </article>
 
-      <article class="card-panel stat stat--info">
-        <div class="stat__top">
-          <span class="stat__label">Em Aberto</span>
-          <span class="stat__icon" aria-hidden="true">
-            <svg class="icon" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
+        @if (ultimasCrises().length === 0) {
+          <div class="empty">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style="width: 2.5rem; height: 2.5rem; margin: 0 auto var(--space-3); color: var(--text-subtle)"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6M12 18v-6M9 15h6" />
             </svg>
-          </span>
-        </div>
-        <span class="stat__value">{{ r.crisesAbertas }}</span>
+            <p>Você ainda não cadastrou nenhuma crise.</p>
+            <p class="muted" style="margin-bottom: var(--space-4)">
+              Registre uma ocorrência para começar a acompanhá-la aqui.
+            </p>
+            <a class="btn-primary" routerLink="/crises/nova">Cadastrar primeira crise</a>
+          </div>
+        } @else {
+          <ul class="home-crises">
+            @for (crise of ultimasCrises(); track crise.id) {
+              <li class="home-crises__item">
+                <a class="home-crises__link" [routerLink]="['/crises', crise.id]">
+                  <span class="home-crises__title">{{ crise.titulo }}</span>
+                  <span class="home-crises__meta">{{ crise.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </a>
+                <span [class]="'badge badge--' + crise.status.toLowerCase()">{{
+                  crise.status.toLowerCase().replace('_', ' ')
+                }}</span>
+              </li>
+            }
+          </ul>
+        }
       </article>
-
-      <article class="card-panel stat stat--success">
-        <div class="stat__top">
-          <span class="stat__label">Resolvidas</span>
-          <span class="stat__icon" aria-hidden="true">
-            <svg class="icon" viewBox="0 0 24 24">
-              <path d="M21.801 10A10 10 0 1 1 17 3.335" />
-              <path d="m9 11 3 3L22 4" />
-            </svg>
-          </span>
-        </div>
-        <span class="stat__value">{{ r.crisesResolvidas }}</span>
-      </article>
-
-      <article class="card-panel stat stat--danger">
-        <div class="stat__top">
-          <span class="stat__label">Críticas Ativas</span>
-          <span class="stat__icon" aria-hidden="true">
-            <svg class="icon" viewBox="0 0 24 24">
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-            </svg>
-          </span>
-        </div>
-        <span class="stat__value">{{ r.crisesCriticas }}</span>
-      </article>
-    </div>
-  }
-</section>
+    }
+  </section>
+}

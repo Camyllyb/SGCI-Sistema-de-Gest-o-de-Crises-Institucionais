@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 import { adminGuard } from './core/guards/admin.guard';
 import { authGuard } from './core/guards/auth.guard';
-import { changePasswordGuard } from './core/guards/change-password.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -11,11 +10,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/pages/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'trocar-senha',
-    canActivate: [changePasswordGuard],
+    path: 'esqueci-senha',
     loadComponent: () =>
-      import('./features/auth/pages/change-password/change-password.component').then(
-        (m) => m.ChangePasswordComponent,
+      import('./features/auth/pages/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+  },
+  {
+    path: 'redefinir-senha',
+    loadComponent: () =>
+      import('./features/auth/pages/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
       ),
   },
   {
@@ -27,6 +32,16 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
           import('./features/dashboard/pages/dashboard.component').then((m) => m.DashboardComponent),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/perfil/pages/perfil.component').then((m) => m.PerfilComponent),
+      },
+      {
+        path: 'acesso-negado',
+        loadComponent: () =>
+          import('./features/acesso-negado/acesso-negado.component').then((m) => m.AcessoNegadoComponent),
       },
       {
         path: 'departamentos',
@@ -153,6 +168,7 @@ export const routes: Routes = [
       },
       {
         path: 'relatorios',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/relatorios/pages/list/relatorio-list.component').then((m) => m.RelatorioListComponent),
       },

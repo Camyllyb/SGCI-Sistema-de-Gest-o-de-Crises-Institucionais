@@ -15,6 +15,15 @@ public class CriseRepository implements PanacheRepository<Crise> {
         return list("order by createdAt desc");
     }
 
+    /** Crises cadastradas por um usuario especifico (visao do perfil COMUM). */
+    public List<Crise> listByCreator(Long createdBy) {
+        return list("createdBy = ?1 order by createdAt desc", createdBy);
+    }
+
+    public long countByCreator(Long createdBy) {
+        return count("createdBy = ?1", createdBy);
+    }
+
     public long countByStatus(StatusCrise status) {
         return count("status = ?1", status);
     }

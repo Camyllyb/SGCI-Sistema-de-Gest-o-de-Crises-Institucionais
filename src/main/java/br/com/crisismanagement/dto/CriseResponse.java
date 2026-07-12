@@ -16,10 +16,18 @@ public record CriseResponse(
         Long campusId,
         Long cenarioId,
         Long departamentoId,
+        Long createdBy,
+        String createdByName,
         boolean active,
         LocalDateTime createdAt) {
 
+    /** Projecao sem o nome do responsavel resolvido (usado quando ele nao e necessario). */
     public static CriseResponse from(Crise crise) {
+        return from(crise, null);
+    }
+
+    /** Projecao com o nome do responsavel (criador) ja resolvido. */
+    public static CriseResponse from(Crise crise, String createdByName) {
         return new CriseResponse(
                 crise.id,
                 crise.titulo,
@@ -30,6 +38,8 @@ public record CriseResponse(
                 crise.campusId,
                 crise.cenarioId,
                 crise.departamentoId,
+                crise.createdBy,
+                createdByName,
                 crise.active,
                 crise.createdAt);
     }

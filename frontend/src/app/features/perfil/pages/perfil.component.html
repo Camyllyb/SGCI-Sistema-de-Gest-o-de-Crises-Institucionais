@@ -1,0 +1,79 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1>Meu Perfil</h1>
+      <span class="page__subtitle">Seus dados cadastrais e segurança da conta</span>
+    </div>
+    @if (profile()) {
+      <div class="page__actions">
+        <button class="btn btn--secondary" type="button" (click)="openPasswordModal()">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>Alterar senha</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  @if (loading()) {
+    <article class="card-panel card--pad">
+      <span class="skeleton skeleton--title"></span>
+      <span class="skeleton skeleton--text" style="width: 60%"></span>
+      <span class="skeleton skeleton--text" style="width: 45%"></span>
+      <span class="skeleton skeleton--text" style="width: 55%"></span>
+    </article>
+  } @else if (error(); as errorMessage) {
+    <p class="alert alert--error">{{ errorMessage }}</p>
+  } @else if (profile(); as p) {
+    <article class="card-panel card--pad">
+      <div class="detail__header">
+        <div style="display: flex; align-items: center; gap: var(--space-4)">
+          <span class="profile-avatar" aria-hidden="true">{{ p.name.charAt(0) }}</span>
+          <div>
+            <h2>{{ p.name }}</h2>
+            <span
+              class="role-chip"
+              [class.role-chip--admin]="p.perfil === 'ADMIN'"
+            >{{ perfilLabel(p.perfil) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <dl class="detail__grid">
+        <div>
+          <dt>Nome</dt>
+          <dd>{{ p.name }}</dd>
+        </div>
+        <div>
+          <dt>E-mail</dt>
+          <dd>{{ p.email }}</dd>
+        </div>
+        <div>
+          <dt>Cargo</dt>
+          <dd>{{ p.cargo || '—' }}</dd>
+        </div>
+        <div>
+          <dt>Departamento</dt>
+          <dd>{{ p.departamentoNome || '—' }}</dd>
+        </div>
+        <div>
+          <dt>Instituição</dt>
+          <dd>{{ p.instituicaoNome || '—' }}</dd>
+        </div>
+        <div>
+          <dt>Perfil de acesso</dt>
+          <dd>{{ perfilLabel(p.perfil) }}</dd>
+        </div>
+      </dl>
+    </article>
+  }
+</section>
+
+@if (showPasswordModal()) {
+  <app-change-password-modal
+    (closed)="closePasswordModal()"
+    (changed)="closePasswordModal()"
+  />
+}

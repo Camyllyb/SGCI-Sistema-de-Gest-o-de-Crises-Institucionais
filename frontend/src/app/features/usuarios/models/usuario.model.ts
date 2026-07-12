@@ -8,6 +8,8 @@ export interface Usuario {
   email: string;
   perfil: Perfil;
   departamentoId: number | null;
+  instituicaoId: number | null;
+  cargo: string | null;
   active: boolean;
   mustChangePassword: boolean;
   createdAt: string;
@@ -19,5 +21,7 @@ export interface UsuarioRequest {
   password?: string | null;
   perfil: Perfil;
   departamentoId: number | null;
+  instituicaoId: number | null;
+  cargo: string | null;
   active?: boolean;
 }

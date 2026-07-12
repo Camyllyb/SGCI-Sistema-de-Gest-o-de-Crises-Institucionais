@@ -6,6 +6,7 @@ export interface Acao {
   tipo: TipoAcao;
   criseId: number;
   usuarioId: number;
+  usuarioNome: string | null;
   createdAt: string;
 }
 

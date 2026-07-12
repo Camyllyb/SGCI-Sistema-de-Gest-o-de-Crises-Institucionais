@@ -39,11 +39,24 @@ public class User extends PanacheEntityBase {
     @Column(name = "departamento_id")
     public Long departamentoId;
 
+    @Column(name = "instituicao_id")
+    public Long instituicaoId;
+
+    @Column(name = "cargo", length = 100)
+    public String cargo;
+
     @Column(name = "active", nullable = false)
     public boolean active;
 
     @Column(name = "must_change_password", nullable = false)
     public boolean mustChangePassword;
+
+    /** Hash SHA-256 do token de recuperacao de senha (nulo fora do fluxo). */
+    @Column(name = "reset_token", length = 64)
+    public String resetToken;
+
+    @Column(name = "reset_token_expires_at")
+    public LocalDateTime resetTokenExpiresAt;
 
     @Column(name = "created_at", nullable = false)
     public LocalDateTime createdAt;

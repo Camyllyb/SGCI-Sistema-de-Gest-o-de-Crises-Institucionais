@@ -811,7 +811,458 @@ textarea.form-control {
   margin-bottom: var(--space-1);
 }
 
-/* ---------- 14. Acessibilidade / motion ---------- */
+/* ---------- 14. Modal (overlay + cartão) ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  animation: overlay-in 0.15s ease;
+}
+.modal-card {
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 0.18s ease;
+}
+.modal-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+.modal-card__title {
+  font-size: 1.15rem;
+}
+.modal-card__close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.modal-card__close:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+.modal-card__body {
+  padding: 0 var(--space-5) var(--space-5);
+}
+.modal-intro {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-bottom: var(--space-4);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.field-hint {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+}
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary-active);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- 15. Toasts ---------- */
+.toast-stack {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(360px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toast-in 0.2s ease;
+}
+.toast__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  margin-top: 1px;
+}
+.toast__message {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.toast__close {
+  flex: none;
+  border: none;
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.toast__close:hover {
+  color: var(--text);
+}
+.toast--success {
+  border-left-color: var(--success);
+}
+.toast--success .toast__icon {
+  color: var(--success);
+}
+.toast--error {
+  border-left-color: var(--danger);
+}
+.toast--error .toast__icon {
+  color: var(--danger);
+}
+.toast--info {
+  border-left-color: var(--info);
+}
+.toast--info .toast__icon {
+  color: var(--info);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------- 16. Skeleton (carregamento) ---------- */
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 25%,
+    #e9eef5 37%,
+    var(--surface-muted) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+.skeleton--text {
+  height: 0.9rem;
+  margin-bottom: var(--space-2);
+}
+.skeleton--title {
+  height: 1.4rem;
+  width: 40%;
+  margin-bottom: var(--space-3);
+}
+.skeleton--line {
+  height: 44px;
+}
+.skeleton--card {
+  height: 96px;
+  border-radius: var(--radius-lg);
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+
+/* ---------- 17. Erro de campo (validação inline) ---------- */
+.field-error {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 0.78rem;
+  color: var(--danger-text);
+}
+.form-control.is-invalid,
+.main input.is-invalid,
+.main select.is-invalid,
+.main textarea.is-invalid {
+  border-color: var(--danger);
+}
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+/* ---------- 18. Páginas de autenticação centralizadas (recuperação de senha) ---------- */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: linear-gradient(160deg, var(--primary-soft), var(--bg) 55%);
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-6);
+}
+.auth-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.auth-head__logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: #fff;
+}
+.auth-head__logo .icon {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+.auth-title {
+  font-size: 1.25rem;
+}
+.auth-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-5);
+  line-height: 1.55;
+}
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.auth-actions .btn-primary {
+  width: 100%;
+}
+.auth-back {
+  text-align: center;
+  font-size: 0.9rem;
+}
+.auth-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+.auth-success__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+
+/* ---------- 19. Barra de filtros + paginação ---------- */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.filters__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.filters__search .icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+.filters__search .form-control {
+  padding-left: 2.4rem;
+}
+.filters__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.filters__group .form-control {
+  width: auto;
+  min-width: 150px;
+  flex: 1 1 150px;
+  max-width: 220px;
+  text-transform: capitalize;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.pagination__info {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.pagination__controls {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* ---------- 20. Gráficos (primitivos usados pelos componentes de chart) ---------- */
+.chart-pie {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+.chart-pie__svg {
+  flex: none;
+}
+.chart-pie__center-value {
+  fill: var(--text-main);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.chart-pie__center-label {
+  fill: var(--text-muted);
+  font-size: 0.72rem;
+}
+.chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+}
+.chart-legend__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: none;
+  border-radius: 3px;
+}
+.chart-legend__label {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-legend__value {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chart-legend__empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.chart-line {
+  width: 100%;
+  height: auto;
+}
+.chart-axis {
+  fill: var(--text-subtle);
+  font-size: 0.62rem;
+}
+.chart-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.chart-bars__row {
+  display: grid;
+  grid-template-columns: minmax(90px, 25%) 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.85rem;
+}
+.chart-bars__label {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-bars__track {
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+.chart-bars__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s ease;
+}
+.chart-bars__value {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chart-empty {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- 21. Acessibilidade / motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

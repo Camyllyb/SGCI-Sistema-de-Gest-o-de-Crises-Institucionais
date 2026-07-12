@@ -13,7 +13,13 @@
     <p class="alert alert--error">{{ errorMessage }}</p>
   }
 
-  @if (crise(); as c) {
+  @if (loading()) {
+    <article class="card-panel card--pad">
+      <span class="skeleton skeleton--title"></span>
+      <span class="skeleton skeleton--text" style="width: 80%"></span>
+      <span class="skeleton skeleton--text" style="width: 60%"></span>
+    </article>
+  } @else if (crise(); as c) {
     <article class="card-panel card--pad detail">
       <header class="detail__header">
         <h1>{{ c.titulo }}</h1>
@@ -32,19 +38,31 @@
       <dl class="detail__grid">
         <div>
           <dt>Tipo de Crise</dt>
-          <dd>{{ c.tipoCriseId }}</dd>
+          <dd>{{ tipoNome(c.tipoCriseId) }}</dd>
         </div>
         <div>
           <dt>Campus</dt>
-          <dd>{{ c.campusId }}</dd>
+          <dd>{{ campusNome(c.campusId) }}</dd>
         </div>
         <div>
           <dt>Cenário</dt>
-          <dd>{{ c.cenarioId || '-' }}</dd>
+          <dd>{{ cenarioNome(c.cenarioId) }}</dd>
         </div>
         <div>
           <dt>Departamento</dt>
-          <dd>{{ c.departamentoId }}</dd>
+          <dd>{{ departamentoNome(c.departamentoId) }}</dd>
+        </div>
+        <div>
+          <dt>Responsável</dt>
+          <dd>{{ c.createdByName || '—' }}</dd>
+        </div>
+        <div>
+          <dt>Data de criação</dt>
+          <dd>{{ c.createdAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt>Última atualização</dt>
+          <dd>{{ (ultimaAtualizacao() | date: 'dd/MM/yyyy HH:mm') || '—' }}</dd>
         </div>
       </dl>
     </article>
@@ -63,8 +81,20 @@
       }
     </div>
 
+    @if (encerrada()) {
+      <p class="alert alert--success" role="status">
+        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+        Esta crise está encerrada e não pode mais ser editada.
+      </p>
+    }
+
     @if (formVisivel()) {
-      <form #acaoForm="ngForm" (ngSubmit)="registrarAcao()" class="card-panel form-section">
+      <form
+        *appRole="['ADMIN']"
+        #acaoForm="ngForm"
+        (ngSubmit)="registrarAcao()"
+        class="card-panel form-section"
+      >
         <div class="form-section__head">
           <span class="form-section__icon" aria-hidden="true">
             <svg class="icon" viewBox="0 0 24 24">
@@ -102,19 +132,19 @@
         </div>
 
         <div class="form__actions">
-          <button class="btn-primary" type="submit" [disabled]="acaoForm.invalid">
+          <button class="btn-primary" type="submit" [disabled]="acaoForm.invalid || savingAcao()">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h14" />
               <path d="M12 5v14" />
             </svg>
-            <span>Salvar Ação</span>
+            <span>{{ savingAcao() ? 'Salvando...' : 'Salvar Ação' }}</span>
           </button>
         </div>
       </form>
     }
 
     <div class="timeline-section">
-      <h2>Timeline de Ações</h2>
+      <h2>Linha do tempo da crise</h2>
       <ol class="timeline">
         @for (acao of acoes(); track acao.id) {
           <li class="timeline__item">
@@ -122,10 +152,10 @@
             <div class="timeline__content">
               <div class="timeline__head">
                 <span class="badge badge--info">{{ acao.tipo }}</span>
-                <span class="timeline__date">{{ acao.createdAt }}</span>
+                <span class="timeline__date">{{ acao.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
               </div>
               <p class="timeline__desc">{{ acao.descricao }}</p>
-              <p class="timeline__meta">Usuário: {{ acao.usuarioId }}</p>
+              <p class="timeline__meta">Registrada por: {{ acao.usuarioNome || ('Usuário #' + acao.usuarioId) }}</p>
             </div>
           </li>
         } @empty {

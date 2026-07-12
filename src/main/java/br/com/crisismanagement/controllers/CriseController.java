@@ -64,7 +64,7 @@ public class CriseController {
 
     @POST
     @Path("/{id}/acoes")
-    @RolesAllowed({"ADMIN", "COMUM"})
+    @RolesAllowed("ADMIN")
     public Response addAcao(@PathParam("id") Long id, @Valid AcaoCriseRequest request) {
         AcaoCriseResponse created = criseService.addAcao(id, request);
         return Response.status(Response.Status.CREATED).entity(created).build();

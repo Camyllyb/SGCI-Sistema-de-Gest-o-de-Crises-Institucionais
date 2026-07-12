@@ -11,15 +11,21 @@ public record AcaoCriseResponse(
         TipoAcao tipo,
         Long criseId,
         Long usuarioId,
+        String usuarioNome,
         LocalDateTime createdAt) {
 
     public static AcaoCriseResponse from(AcaoCrise acao) {
+        return from(acao, null);
+    }
+
+    public static AcaoCriseResponse from(AcaoCrise acao, String usuarioNome) {
         return new AcaoCriseResponse(
                 acao.id,
                 acao.descricao,
                 acao.tipo,
                 acao.criseId,
                 acao.usuarioId,
+                usuarioNome,
                 acao.createdAt);
     }
 }

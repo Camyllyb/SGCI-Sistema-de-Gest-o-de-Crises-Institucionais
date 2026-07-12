@@ -14,6 +14,10 @@ public class UserRepository implements PanacheRepository<User> {
         return find("email", email).firstResultOptional();
     }
 
+    public Optional<User> findByResetToken(String resetToken) {
+        return find("resetToken", resetToken).firstResultOptional();
+    }
+
     public List<User> listAllOrdered() {
         return list("order by name");
     }

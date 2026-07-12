@@ -61,7 +61,7 @@
     <span class="chip">Signals</span>
     <span class="chip">RxJS 7.8</span>
   </div>
-  <div style="margin-top:20px; font-size:12px; color:var(--muted);">Gerado em 06/07/2026</div>
+  <div style="margin-top:20px; font-size:12px; color:var(--muted);">Atualizado em 12/07/2026</div>
 </div>
 
 <!-- SUMÁRIO -->
@@ -77,10 +77,16 @@
   <li>Guards de rota (auth e admin)</li>
   <li>Diretiva estrutural <code>*appRole</code></li>
   <li>Roteamento e lazy loading</li>
-  <li>Layout principal (sidebar, breadcrumbs, logout)</li>
+  <li>Layout principal (sidebar agrupada, header, busca, notificações)</li>
   <li>Features — visão geral e padrão comum</li>
   <li>Feature Crises em profundidade (form + máquina de estados)</li>
-  <li>Dashboard, Relatórios e Auditoria</li>
+  <li>Dashboard por perfil, Relatórios e Auditoria</li>
+  <li>Primitivos de UX (Toast, Modal, Skeleton)</li>
+  <li>Primeiro acesso (modal bloqueante) e recuperação de senha</li>
+  <li>Meu Perfil</li>
+  <li>Dashboard por perfil e Centro de Monitoramento (admin)</li>
+  <li>Gráficos em SVG/CSS sem biblioteca</li>
+  <li>Acesso Negado e endurecimento do perfil COMUM</li>
   <li>Fluxos de ponta a ponta</li>
 </ol>
 </div>
@@ -100,7 +106,7 @@ SCSS. Ele apenas renderiza as telas e consome a API REST do backend Quarkus.</p>
 <tr><td>3</td><td><b><code>inject()</code></b> em vez de injeção por construtor.</td><td>Código mais enxuto nos componentes/serviços.</td></tr>
 <tr><td>4</td><td><b>Lazy loading</b> em toda rota (<code>loadComponent</code>).</td><td>Cada tela vira um chunk carregado sob demanda.</td></tr>
 <tr><td>5</td><td><b>Sessão por cookie</b> (HttpOnly), não token no JS.</td><td>O cliente só espelha o usuário; a sessão real vive no servidor.</td></tr>
-<tr><td>6</td><td><b>Sem biblioteca de UI</b> (nada de Material/Bootstrap).</td><td>Design system manual em <code>styles.scss</code>, ícones SVG inline.</td></tr>
+<tr><td>6</td><td><b>Sem biblioteca de UI</b> (nada de Material/Bootstrap).</td><td>Design system manual em <code>styles.scss</code>, ícones SVG inline e <b>gráficos SVG/CSS próprios</b>.</td></tr>
 </table>
 
 <h3>Stack</h3>
@@ -108,7 +114,7 @@ SCSS. Ele apenas renderiza as telas e consome a API REST do backend Quarkus.</p>
 <tr><th>Tecnologia</th><th>Versão</th><th>Papel</th></tr>
 <tr><td>Angular</td><td>20.3</td><td>Framework SPA (core, common, forms, router)</td></tr>
 <tr><td>TypeScript</td><td>5.9</td><td>Linguagem</td></tr>
-<tr><td>RxJS</td><td>7.8</td><td>Observables para HTTP e eventos de navegação</td></tr>
+<tr><td>RxJS</td><td>7.8</td><td>Observables para HTTP, <code>forkJoin</code> e eventos de navegação</td></tr>
 <tr><td>@angular/build</td><td>20.3</td><td>Application builder (novo)</td></tr>
 <tr><td>SCSS</td><td>—</td><td>Design system próprio</td></tr>
 <tr><td>Karma + Jasmine</td><td>—</td><td>Testes</td></tr>
@@ -119,9 +125,18 @@ SCSS. Ele apenas renderiza as telas e consome a API REST do backend Quarkus.</p>
 <section class="pb">
 <h2>2. Bootstrap e configuração global</h2>
 <p>A aplicação sobe sem módulos: <code>main.ts</code> monta o componente raiz <code>App</code> com um objeto de
-configuração. O <code>App</code> só contém um <code>&lt;router-outlet&gt;</code>.</p>
+configuração. O <code>App</code> contém um <code>&lt;router-outlet&gt;</code> e monta uma única vez o
+<code>&lt;app-toast-container&gt;</code> (pilha global de notificações — ver seção 14).</p>
 <pre><code><span class="c">// main.ts</span>
-bootstrapApplication(App, appConfig).catch((err) =&gt; console.error(err));</code></pre>
+bootstrapApplication(App, appConfig).catch((err) =&gt; console.error(err));
+
+<span class="c">// app.ts — componente raiz</span>
+<span class="k">@Component</span>({
+  selector: <span class="s">'app-root'</span>,
+  imports: [RouterOutlet, ToastContainerComponent],  <span class="c">// toasts globais</span>
+  templateUrl: <span class="s">'./app.html'</span>,
+})
+<span class="k">export class</span> App {}</code></pre>
 
 <p>Todos os provedores globais ficam em <code>app.config.ts</code>:</p>
 <pre><code><span class="c">// app.config.ts</span>
@@ -149,45 +164,92 @@ bootstrapApplication(App, appConfig).catch((err) =&gt; console.error(err));</cod
 <section>
 <h2>3. Estrutura de pastas</h2>
 <div class="tree">app/
-├─ app.ts / app.config.ts / app.routes.ts   (raiz)
+├─ app.ts / app.config.ts / app.routes.ts   (raiz; app.ts monta o ToastContainer)
 ├─ core/                                     infraestrutura transversal
 │   ├─ config/       api.config.ts           (API_BASE_URL)
 │   ├─ guards/       auth.guard · admin.guard
 │   ├─ interceptors/ credentials.interceptor
 │   ├─ directives/   role.directive          (*appRole)
-│   ├─ models/       auth.model · user.model
-│   └─ services/     auth.service            (sessão via signals)
+│   ├─ models/       auth.model · user.model · profile.model
+│   ├─ utils/        http-error.ts · password-policy.ts
+│   ├─ components/                           primitivos e gráficos reutilizáveis
+│   │   ├─ toast/    toast-container.component
+│   │   ├─ modal/    modal.component
+│   │   └─ charts/   pie-chart · line-chart · bar-chart · chart.types
+│   └─ services/     auth.service · toast.service
 ├─ layouts/
-│   └─ main-layout/  casca das telas autenticadas
+│   └─ main-layout/  casca das telas autenticadas (sidebar + header + modais)
 └─ features/                                 uma pasta por domínio
-    ├─ auth/         (login)
-    ├─ dashboard/
+    ├─ auth/
+    │   ├─ pages/       login · forgot-password · reset-password
+    │   └─ components/  change-password-modal
+    ├─ dashboard/    pages/ dashboard · admin-dashboard
+    ├─ perfil/       pages/ perfil               (Meu Perfil)
+    ├─ acesso-negado/ acesso-negado.component    (destino do adminGuard)
     ├─ crises/       list · form · detail
     ├─ relatorios/   list · form
     ├─ auditoria/    list (admin)
+    ├─ usuarios/     list · form (admin)
     └─ departamentos · tipos-crise · instituicoes · campi · cenarios
        (cada feature: models/ · pages/ · services/)</div>
 <p>Cada feature isola <code>models</code> (interfaces/tipos), <code>pages</code> (componentes de tela) e
-<code>services</code> (acesso HTTP), mantendo alto o acoplamento interno e baixo entre features.</p>
+<code>services</code> (acesso HTTP), mantendo alto o acoplamento interno e baixo entre features. O que é
+compartilhado por várias features — primitivos de UX, gráficos, utilitários — foi promovido a
+<code>core/components</code> e <code>core/utils</code>.</p>
 </section>
 
 <!-- 4 -->
 <section class="pb">
 <h2>4. Camada <code>core</code> — configuração e modelos</h2>
 <p>O pacote <code>core</code> reúne tudo que é transversal: config da API, guards, interceptor, diretiva de papel,
-o serviço de autenticação e os modelos base.</p>
+os serviços de autenticação/toast, utilitários e os modelos base.</p>
 
 <h4>Modelos de autenticação e usuário</h4>
 <pre><code><span class="c">// auth.model.ts</span>
 <span class="k">export interface</span> LoginRequest  { email: <span class="k">string</span>; password: <span class="k">string</span>; }
-<span class="k">export interface</span> LoginResponse { authenticated: <span class="k">boolean</span>; message: <span class="k">string</span>; }
+<span class="k">export interface</span> LoginResponse { authenticated: <span class="k">boolean</span>; message: <span class="k">string</span>; mustChangePassword: <span class="k">boolean</span>; }
+<span class="k">export interface</span> ChangePasswordRequest { currentPassword: <span class="k">string</span>; newPassword: <span class="k">string</span>; }
+<span class="k">export interface</span> ForgotPasswordRequest { email: <span class="k">string</span>; }
+<span class="k">export interface</span> ResetPasswordRequest  { token: <span class="k">string</span>; newPassword: <span class="k">string</span>; }
 
 <span class="c">// user.model.ts</span>
 <span class="k">export type</span> Perfil = <span class="s">'ADMIN'</span> | <span class="s">'COMUM'</span>;
-<span class="k">export interface</span> User { id: <span class="k">number</span>; name: <span class="k">string</span>; email: <span class="k">string</span>; perfil: Perfil; }</code></pre>
+<span class="k">export interface</span> User { id: <span class="k">number</span>; name: <span class="k">string</span>; email: <span class="k">string</span>;
+  perfil: Perfil; mustChangePassword: <span class="k">boolean</span>; }   <span class="c">// flag de primeiro acesso</span></code></pre>
+<p>O campo <code>LoginResponse.mustChangePassword</code> e <code>User.mustChangePassword</code> alimentam o fluxo de
+<b>primeiro acesso</b> (seção 15): quando verdadeiro, o layout exibe um modal bloqueante de troca de senha.</p>
+
+<h4>Modelo de perfil (Meu Perfil)</h4>
+<pre><code><span class="c">// profile.model.ts — dados cadastrais somente leitura</span>
+<span class="k">export interface</span> Profile {
+  id: <span class="k">number</span>; name: <span class="k">string</span>; email: <span class="k">string</span>; perfil: Perfil;
+  cargo: <span class="k">string</span> | <span class="k">null</span>;
+  departamentoId: <span class="k">number</span> | <span class="k">null</span>;  departamentoNome: <span class="k">string</span> | <span class="k">null</span>;
+  instituicaoId: <span class="k">number</span> | <span class="k">null</span>;   instituicaoNome: <span class="k">string</span> | <span class="k">null</span>;
+}</code></pre>
+<p>O backend resolve os <em>nomes</em> de departamento e instituição, então a tela de perfil apenas exibe strings
+já prontas, sem novas chamadas.</p>
+
+<h4>Política de senha (<code>core/utils/password-policy.ts</code>)</h4>
+<p>Regra compartilhada entre a troca (primeiro acesso e "Meu Perfil") e a redefinição de senha:</p>
+<pre><code><span class="k">export const</span> PASSWORD_MIN_LENGTH = <span class="a">8</span>;
+<span class="k">export function</span> validatePasswordPolicy(password: <span class="k">string</span>): <span class="k">string</span> | <span class="k">null</span> {
+  <span class="k">if</span> (password.length &lt; PASSWORD_MIN_LENGTH) <span class="k">return</span> <span class="s">`A senha deve ter ao menos ${PASSWORD_MIN_LENGTH} caracteres.`</span>;
+  <span class="k">if</span> (!/[A-Za-z]/.test(password)) <span class="k">return</span> <span class="s">'A senha deve conter ao menos uma letra.'</span>;
+  <span class="k">if</span> (!/[0-9]/.test(password))   <span class="k">return</span> <span class="s">'A senha deve conter ao menos um número.'</span>;
+  <span class="k">return null</span>;   <span class="c">// aprovada</span>
+}</code></pre>
+<div class="note"><b>Mín. 8 caracteres + ao menos uma letra + um número.</b> A validação retorna uma mensagem amigável
+(ou <code>null</code> se ok) e está alinhada à política do backend (Bean Validation nos DTOs de senha).</div>
 <p>Os tipos do front espelham exatamente os DTOs do backend — por exemplo, <code>Perfil</code> reflete o enum
 <code>PerfilUsuario</code>, e cada feature tem seus próprios tipos (ex.: <code>StatusCrise</code>,
 <code>NivelCriticidade</code>, <code>TipoAcao</code>) idênticos aos enums Java.</p>
+
+<h4>Utilitário de erro HTTP (<code>core/utils/http-error.ts</code>)</h4>
+<p><code>extractApiError(err, fallback)</code> traduz uma <code>HttpErrorResponse</code> do Quarkus em mensagem legível:
+cobre Bean Validation (<code>violations[]</code>), erros de negócio (<code>{ message }</code>), corpos vazios (mensagem
+por status 401/403/404/409/500) e falha de rede (status 0). É usado por praticamente toda tela ao tratar
+<code>subscribe({ error })</code>.</p>
 </section>
 
 <!-- 5 -->
@@ -203,21 +265,25 @@ Todo o resto da aplicação lê esse signal de forma reativa.</p>
   <span class="k">readonly</span> currentUser = signal&lt;User | <span class="k">null</span>&gt;(<span class="k">null</span>);
   <span class="k">readonly</span> isAuthenticated = computed(() =&gt; <span class="k">this</span>.currentUser() !== <span class="k">null</span>);
 
-  login(credentials: LoginRequest): Observable&lt;LoginResponse&gt; {
-    <span class="k">return this</span>.http.post&lt;LoginResponse&gt;(<span class="s">`${this.baseUrl}/login`</span>, credentials);
-  }
-  logout(): Observable&lt;<span class="k">void</span>&gt; {
-    <span class="k">return this</span>.http.post&lt;<span class="k">void</span>&gt;(<span class="s">`${this.baseUrl}/logout`</span>, {})
-      .pipe(tap(() =&gt; <span class="k">this</span>.currentUser.set(<span class="k">null</span>)));   <span class="c">// limpa o espelho local</span>
-  }
-  fetchCurrentUser(): Observable&lt;User&gt; {
-    <span class="k">return this</span>.http.get&lt;User&gt;(<span class="s">`${this.baseUrl}/me`</span>)
-      .pipe(tap((user) =&gt; <span class="k">this</span>.currentUser.set(user)));  <span class="c">// atualiza o espelho</span>
-  }
+  login(credentials)      { <span class="k">return this</span>.http.post&lt;LoginResponse&gt;(<span class="s">`${this.baseUrl}/login`</span>, credentials); }
+  logout()                { <span class="k">return this</span>.http.post&lt;<span class="k">void</span>&gt;(<span class="s">`${this.baseUrl}/logout`</span>, {})
+                              .pipe(tap(() =&gt; <span class="k">this</span>.currentUser.set(<span class="k">null</span>))); }   <span class="c">// limpa o espelho</span>
+  fetchCurrentUser()      { <span class="k">return this</span>.http.get&lt;User&gt;(<span class="s">`${this.baseUrl}/me`</span>)
+                              .pipe(tap((u) =&gt; <span class="k">this</span>.currentUser.set(u))); }  <span class="c">// atualiza o espelho</span>
+
+  getProfile()            { <span class="k">return this</span>.http.get&lt;Profile&gt;(<span class="s">`${this.baseUrl}/perfil`</span>); }   <span class="c">// Meu Perfil</span>
+  changePassword(request) { <span class="k">return this</span>.http.post&lt;LoginResponse&gt;(<span class="s">`${this.baseUrl}/change-password`</span>, request)
+                              .pipe(tap(() =&gt; {                    <span class="c">// zera mustChangePassword no signal</span>
+                                <span class="k">const</span> u = <span class="k">this</span>.currentUser();
+                                <span class="k">if</span> (u) <span class="k">this</span>.currentUser.set({ ...u, mustChangePassword: <span class="k">false</span> });
+                              })); }
+  forgotPassword(email)   { <span class="k">return this</span>.http.post&lt;<span class="k">void</span>&gt;(<span class="s">`${this.baseUrl}/forgot-password`</span>, { email }); }
+  resetPassword(request)  { <span class="k">return this</span>.http.post&lt;LoginResponse&gt;(<span class="s">`${this.baseUrl}/reset-password`</span>, request); }
 }</code></pre>
 <div class="note"><b>Padrão-chave:</b> <code>currentUser</code> é a única fonte de verdade da sessão no cliente. Os
-guards a atualizam via <code>fetchCurrentUser()</code>, a diretiva <code>*appRole</code> e o layout a leem, e o
-<code>logout()</code> a zera. Como é um signal, qualquer mudança propaga automaticamente para a UI.</div>
+guards a atualizam via <code>fetchCurrentUser()</code>; a diretiva <code>*appRole</code> e o layout a leem; o
+<code>logout()</code> a zera; e <code>changePassword()</code> a atualiza no lugar, apagando
+<code>mustChangePassword</code> — o que dispensa o modal bloqueante assim que a senha é definida.</div>
 
 <h4>Login — o componente</h4>
 <pre><code><span class="k">export class</span> LoginComponent {
@@ -229,12 +295,16 @@ guards a atualizam via <code>fetchCurrentUser()</code>, a diretiva <code>*appRol
     <span class="k">this</span>.loading.set(<span class="k">true</span>);
     <span class="k">this</span>.authService.login({ email: <span class="k">this</span>.email(), password: <span class="k">this</span>.password() }).subscribe({
       next: (r) =&gt; r.authenticated
-        ? <span class="k">this</span>.router.navigate([<span class="s">'/dashboard'</span>])
+        ? <span class="k">this</span>.router.navigate([<span class="s">'/dashboard'</span>])   <span class="c">// login sempre vai ao dashboard</span>
         : <span class="k">this</span>.errorMessage.set(r.message),
       error: () =&gt; <span class="k">this</span>.errorMessage.set(<span class="s">'Credenciais inválidas'</span>),
     });
   }
 }</code></pre>
+<div class="note">Repare: o login <b>não</b> mais bifurca em "trocar senha". Mesmo com
+<code>mustChangePassword</code>, ele navega para <code>/dashboard</code>; é o layout autenticado que assume o controle
+e sobe o modal obrigatório (seção 15). A página de login ainda oferece o link <em>"Esqueci minha senha"</em> para
+<code>/esqueci-senha</code>.</div>
 </section>
 
 <!-- 6 -->
@@ -265,18 +335,23 @@ sessão no backend a cada navegação</strong> chamando <code>GET /auth/me</code
     catchError(() =&gt; of(router.parseUrl(<span class="s">'/login'</span>))),   <span class="c">// erro → redireciona</span>
   );
 };</code></pre>
+<div class="callout"><b>Mudança importante:</b> o <code>authGuard</code> <b>não redireciona mais</b> quando
+<code>mustChangePassword</code> é verdadeiro. O primeiro acesso deixou de ser uma rota (<code>/trocar-senha</code> foi
+<b>removida</b>, junto do antigo <code>changePasswordGuard</code>): agora é um <b>modal bloqueante</b> montado no
+layout. O guard só valida a existência de sessão.</div>
 
 <h4>adminGuard — exige perfil ADMIN</h4>
 <pre><code><span class="k">export const</span> adminGuard: CanActivateFn = () =&gt; {
   ...
   <span class="k">return</span> authService.fetchCurrentUser().pipe(
-    map((user) =&gt; user.perfil === <span class="s">'ADMIN'</span> ? <span class="k">true</span> : router.parseUrl(<span class="s">'/dashboard'</span>)),
+    map((user) =&gt; user.perfil === <span class="s">'ADMIN'</span> ? <span class="k">true</span> : router.parseUrl(<span class="s">'/acesso-negado'</span>)),
     catchError(() =&gt; of(router.parseUrl(<span class="s">'/login'</span>))),
   );
 };</code></pre>
-<p>Assim há três desfechos: autenticado e autorizado → segue; autenticado sem permissão → volta ao painel;
-não autenticado → login. Como efeito colateral útil, <code>fetchCurrentUser()</code> também popula o signal
-<code>currentUser</code>, deixando a UI pronta assim que a rota carrega.</p>
+<p>Três desfechos: autenticado e ADMIN → segue; autenticado sem permissão → <b><code>/acesso-negado</code></b>
+(antes voltava a <code>/dashboard</code>); não autenticado → login. Como efeito colateral útil,
+<code>fetchCurrentUser()</code> também popula o signal <code>currentUser</code>, deixando a UI pronta assim que a rota
+carrega.</p>
 </section>
 
 <!-- 8 -->
@@ -299,82 +374,124 @@ código extra — porque observa o signal <code>currentUser</code> dentro de um 
   }
   <span class="c">// toggle: cria ou limpa a embedded view via ViewContainerRef</span>
 }</code></pre>
-<p>Uso no template: <code>*appRole="['ADMIN']"</code>. Importante: isso é apenas <em>cosmético</em> — esconde botões
-e itens de menu. A proteção real vem dos guards (front) e das anotações <code>@RolesAllowed</code> (back).</p>
+<p>Uso no template: <code>*appRole="['ADMIN']"</code>. Importante: isso é apenas <em>cosmético</em> — esconde botões,
+itens de menu, a busca/notificações do header e o formulário de ação da crise. A proteção real vem dos guards
+(front) e das anotações <code>@RolesAllowed</code> (back).</p>
 </section>
 
 <!-- 9 -->
 <section>
 <h2>9. Roteamento e lazy loading</h2>
-<p>Todas as telas usam <code>loadComponent</code> (carregamento sob demanda). As rotas autenticadas são
-<em>filhas</em> do <code>MainLayoutComponent</code>, que aplica <code>authGuard</code> uma vez e vale para todas.</p>
+<p>Todas as telas usam <code>loadComponent</code> (carregamento sob demanda). Há três rotas <b>públicas</b>
+(login e recuperação de senha) e o restante são <em>filhas</em> do <code>MainLayoutComponent</code>, que aplica
+<code>authGuard</code> uma vez para todas — e cada área administrativa reforça com <code>adminGuard</code>.</p>
 <pre><code><span class="k">export const</span> routes: Routes = [
   { path: <span class="s">''</span>, redirectTo: <span class="s">'login'</span>, pathMatch: <span class="s">'full'</span> },
-  { path: <span class="s">'login'</span>, loadComponent: () =&gt; import(<span class="s">'.../login.component'</span>)... },
+  { path: <span class="s">'login'</span>,           loadComponent: () =&gt; import(<span class="s">'.../login.component'</span>)... },
+  { path: <span class="s">'esqueci-senha'</span>,   loadComponent: () =&gt; import(<span class="s">'.../forgot-password.component'</span>)... },  <span class="c">// público</span>
+  { path: <span class="s">'redefinir-senha'</span>, loadComponent: () =&gt; import(<span class="s">'.../reset-password.component'</span>)... },   <span class="c">// público (?token=)</span>
   {
     path: <span class="s">''</span>,
     loadComponent: () =&gt; import(<span class="s">'.../main-layout.component'</span>)...,
     canActivate: [authGuard],                     <span class="c">// protege todos os filhos</span>
     children: [
-      { path: <span class="s">'dashboard'</span>,    loadComponent: ... },
-      { path: <span class="s">'crises'</span>,       loadComponent: ... },
-      { path: <span class="s">'crises/nova'</span>,  loadComponent: ... },   <span class="c">// antes de :id</span>
-      { path: <span class="s">'crises/:id'</span>,   loadComponent: ... },
-      { path: <span class="s">'relatorios'</span>,   loadComponent: ... },
-      { path: <span class="s">'relatorios/novo'</span>, loadComponent: ... },
-      { path: <span class="s">'auditoria'</span>, canActivate: [adminGuard], loadComponent: ... }, <span class="c">// só ADMIN</span>
-      ...                                          <span class="c">// departamentos, campi, cenarios, etc.</span>
+      { path: <span class="s">'dashboard'</span>,      loadComponent: ... },
+      { path: <span class="s">'perfil'</span>,         loadComponent: ... },   <span class="c">// Meu Perfil</span>
+      { path: <span class="s">'acesso-negado'</span>,  loadComponent: ... },   <span class="c">// destino do adminGuard</span>
+      { path: <span class="s">'crises'</span>,         loadComponent: ... },
+      { path: <span class="s">'crises/nova'</span>,    loadComponent: ... },   <span class="c">// antes de :id</span>
+      { path: <span class="s">'crises/:id'</span>,     loadComponent: ... },
+      { path: <span class="s">'relatorios'</span>,      canActivate: [adminGuard], loadComponent: ... },  <span class="c">// agora só ADMIN</span>
+      { path: <span class="s">'relatorios/novo'</span>, canActivate: [adminGuard], loadComponent: ... },
+      { path: <span class="s">'usuarios'</span> (+novo, +:id/editar), canActivate: [adminGuard], ... },
+      <span class="c">// cadastros de referência (list + form novo/editar), todos com adminGuard:</span>
+      { path: <span class="s">'departamentos'</span> · <span class="s">'tipos-crise'</span> · <span class="s">'instituicoes'</span> · <span class="s">'campi'</span> · <span class="s">'cenarios'</span>, canActivate: [adminGuard], ... },
+      { path: <span class="s">'auditoria'</span>,     canActivate: [adminGuard], loadComponent: ... },  <span class="c">// só ADMIN</span>
     ],
   },
   { path: <span class="s">'**'</span>, redirectTo: <span class="s">'login'</span> },
 ];</code></pre>
 <table>
 <tr><th>Rota</th><th>Componente</th><th>Guard</th></tr>
-<tr><td><code>/login</code></td><td>LoginComponent</td><td><span class="badge b-public">—</span></td></tr>
+<tr><td><code>/login</code></td><td>LoginComponent</td><td><span class="badge b-public">público</span></td></tr>
+<tr><td><code>/esqueci-senha</code></td><td>ForgotPasswordComponent</td><td><span class="badge b-public">público</span></td></tr>
+<tr><td><code>/redefinir-senha</code></td><td>ResetPasswordComponent</td><td><span class="badge b-public">público</span></td></tr>
 <tr><td><code>/dashboard</code></td><td>DashboardComponent</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/perfil</code></td><td>PerfilComponent</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/acesso-negado</code></td><td>AcessoNegadoComponent</td><td><span class="badge b-auth">authGuard</span></td></tr>
 <tr><td><code>/crises</code> · <code>/crises/nova</code> · <code>/crises/:id</code></td><td>List · Form · Detail</td><td><span class="badge b-auth">authGuard</span></td></tr>
-<tr><td><code>/relatorios</code> · <code>/relatorios/novo</code></td><td>List · Form</td><td><span class="badge b-auth">authGuard</span></td></tr>
-<tr><td><code>/departamentos · /tipos-crise · /instituicoes · /campi · /cenarios</code></td><td>*ListComponent</td><td><span class="badge b-auth">authGuard</span></td></tr>
+<tr><td><code>/relatorios</code> · <code>/relatorios/novo</code></td><td>List · Form</td><td><span class="badge b-admin">+ adminGuard</span></td></tr>
+<tr><td><code>/usuarios</code> · <code>/usuarios/novo</code> · <code>/usuarios/:id/editar</code></td><td>List · Form</td><td><span class="badge b-admin">+ adminGuard</span></td></tr>
+<tr><td><code>/departamentos · /tipos-crise · /instituicoes · /campi · /cenarios</code> (+ novo/editar)</td><td>List · Form</td><td><span class="badge b-admin">+ adminGuard</span></td></tr>
 <tr><td><code>/auditoria</code></td><td>AuditoriaListComponent</td><td><span class="badge b-admin">+ adminGuard</span></td></tr>
 </table>
 <div class="callout"><b>Ordem importa:</b> <code>crises/nova</code> é declarada <em>antes</em> de <code>crises/:id</code>,
-senão "nova" seria capturada como um id.</div>
+senão "nova" seria capturada como um id. <b>Removida:</b> a rota <code>/trocar-senha</code> (e seu
+<code>changePasswordGuard</code>) não existe mais — substituída pelo modal de primeiro acesso.</div>
 </section>
 
 <!-- 10 -->
 <section class="pb">
 <h2>10. Layout principal (<code>MainLayoutComponent</code>)</h2>
-<p>É a casca de todas as telas autenticadas: sidebar de navegação, cabeçalho com breadcrumbs, cartão do usuário e
-botão de logout. O <code>&lt;router-outlet&gt;</code> renderiza a página atual no centro.</p>
+<p>É a casca de todas as telas autenticadas. Foi redesenhado: uma <b>sidebar agrupada e recolhível</b>, um
+<b>header</b> com breadcrumbs, busca global, central de notificações e menu de perfil, além de hospedar o
+<b>modal bloqueante de primeiro acesso</b>. O <code>&lt;router-outlet&gt;</code> renderiza a página atual no centro.</p>
 
-<h4>Breadcrumbs reativos</h4>
-<p>A trilha é reconstruída a cada <code>NavigationEnd</code>, traduzindo os segmentos da URL por um mapa de rótulos:</p>
-<pre><code><span class="k">const</span> CRUMB_LABELS = {
-  dashboard: <span class="s">'Painel'</span>, crises: <span class="s">'Crises'</span>, nova: <span class="s">'Nova Crise'</span>,
-  relatorios: <span class="s">'Relatórios'</span>, auditoria: <span class="s">'Auditoria'</span>, ...
-};
-constructor() {
-  <span class="k">this</span>.updateCrumbs(<span class="k">this</span>.router.url);
-  <span class="k">this</span>.router.events.pipe(
-    filter((e): e is NavigationEnd =&gt; e <span class="k">instanceof</span> NavigationEnd),
-    takeUntilDestroyed(),
-  ).subscribe((e) =&gt; <span class="k">this</span>.updateCrumbs(e.urlAfterRedirects));
-}
-<span class="c">// segmentos numéricos (ex.: /crises/5) viram "Detalhe"</span></code></pre>
-
-<h4>Visibilidade por papel no menu</h4>
-<p>O menu usa <code>*appRole="['ADMIN']"</code> para esconder itens de não-admins. Assim, um usuário COMUM vê só o
-grupo <em>Principal</em> (sem "Nova Crise"), enquanto o ADMIN vê também todo o bloco <em>Administração</em>.</p>
+<h4>Sidebar agrupada e recolhível</h4>
+<p>A navegação é organizada em grupos com separadores e rótulos: <b>Dashboard</b>, <b>Gestão</b> (Crises, Nova
+Crise, Usuários), <b>Cadastros</b> (Instituições, Departamentos, Campi, Tipos de Crise, Cenários),
+<b>Relatórios</b>, <b>Sistema</b> (Auditoria) e <b>Conta</b> (Meu Perfil, Sair). Ela alterna entre
+<b>240&nbsp;px</b> (expandida) e <b>72&nbsp;px</b> (recolhida); o estado é persistido em
+<code>localStorage</code> (<code>sgci.sidebar.collapsed</code>). Quando recolhida, cada item mostra um tooltip via
+atributo <code>[data-tip]</code> (renderizado por <code>::after</code>). O item ativo é destacado por
+<code>routerLinkActive</code>.</p>
 <table>
 <tr><th>Grupo</th><th>Itens</th><th>Visível para</th></tr>
-<tr><td>Principal</td><td>Painel, Crises, Relatórios</td><td>Todos autenticados</td></tr>
-<tr><td>Principal</td><td>Nova Crise</td><td><span class="badge b-admin">ADMIN</span></td></tr>
-<tr><td>Administração</td><td>Departamentos, Tipos de Crise, Cenários, Campi, Instituições, Auditoria</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+<tr><td>Dashboard</td><td>Dashboard</td><td>Todos autenticados</td></tr>
+<tr><td>Gestão</td><td>Crises, Nova Crise</td><td>Todos autenticados</td></tr>
+<tr><td>Gestão</td><td>Usuários</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+<tr><td>Cadastros</td><td>Instituições, Departamentos, Campi, Tipos de Crise, Cenários</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+<tr><td>Relatórios</td><td>Relatórios</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+<tr><td>Sistema</td><td>Auditoria</td><td><span class="badge b-admin">ADMIN</span></td></tr>
+<tr><td>Conta</td><td>Meu Perfil, Sair</td><td>Todos autenticados</td></tr>
 </table>
-<pre><code><span class="c">// logout: chama o backend e volta ao login</span>
-onLogout(): <span class="k">void</span> {
-  <span class="k">this</span>.authService.logout().subscribe(() =&gt; <span class="k">this</span>.router.navigate([<span class="s">'/login'</span>]));
+<p>Os blocos administrativos são envoltos por <code>*appRole="['ADMIN']"</code>; o COMUM vê apenas Dashboard,
+Crises, Nova Crise e Conta.</p>
+
+<h4>Header: breadcrumbs, busca global, notificações e perfil</h4>
+<ul>
+  <li><b>Breadcrumbs</b> reativos: reconstruídos a cada <code>NavigationEnd</code> traduzindo os segmentos da URL por
+  um mapa <code>CRUMB_LABELS</code> (segmentos numéricos viram "Detalhe").</li>
+  <li><b>Busca global</b> (<span class="badge b-admin">ADMIN</span>, escondida por <code>*appRole</code>):
+  <code>onSearch()</code> navega para <code>/crises</code> com <code>?q=&lt;termo&gt;</code>. O
+  <code>CriseListComponent</code> lê esse <code>?q=</code> no <code>ngOnInit</code> e pré-preenche o filtro de busca.</li>
+  <li><b>Central de notificações</b> (<span class="badge b-admin">ADMIN</span>): um <code>computed</code> deriva os
+  alertas de <code>DashboardResumo</code> — crises críticas, em aberto e em andamento. O resumo é carregado <b>uma
+  vez por sessão do shell</b> (<code>dashboardService.resumo()</code> no construtor, com
+  <code>catchError(of(null))</code>).</li>
+  <li><b>Menu de perfil</b> (todos): avatar com a inicial do nome → dropdown com <em>Meu Perfil</em>
+  (<code>/perfil</code>) e <em>Sair</em>.</li>
+</ul>
+<pre><code><span class="c">// os dois menus flutuantes fecham ao clicar em qualquer lugar do documento…</span>
+<span class="k">@HostListener</span>(<span class="s">'document:click'</span>) onDocumentClick() { <span class="k">this</span>.closeMenus(); }
+<span class="c">// …e também a cada NavigationEnd (junto de fechar o menu mobile)</span>
+<span class="k">this</span>.router.events.pipe(filter(isNavigationEnd), takeUntilDestroyed())
+  .subscribe(() =&gt; { <span class="k">this</span>.updateCrumbs(...); <span class="k">this</span>.mobileOpen.set(<span class="k">false</span>); <span class="k">this</span>.closeMenus(); });
+
+onSearch() {                                   <span class="c">// busca global (admin)</span>
+  <span class="k">const</span> term = <span class="k">this</span>.searchTerm().trim();
+  <span class="k">this</span>.router.navigate([<span class="s">'/crises'</span>], term ? { queryParams: { q: term } } : {});
+}
+onLogout() { <span class="k">this</span>.authService.logout().subscribe(() =&gt; <span class="k">this</span>.router.navigate([<span class="s">'/login'</span>])); }</code></pre>
+
+<h4>Modal bloqueante de primeiro acesso</h4>
+<p>No fim do template do layout, condicionado ao signal do usuário:</p>
+<pre><code><span class="k">@if</span> (user()?.mustChangePassword) {
+  &lt;app-change-password-modal [mandatory]="<span class="k">true</span>" (changed)="onFirstAccessChanged()" /&gt;
 }</code></pre>
+<p>Enquanto <code>mustChangePassword</code> for verdadeiro, o modal cobre o app e não pode ser fechado. Ao concluir a
+troca, <code>changePassword()</code> zera o flag no signal (o modal some) e <code>onFirstAccessChanged()</code>
+navega para <code>/dashboard</code>. Detalhes na seção 15.</p>
 </section>
 
 <!-- 11 -->
@@ -382,7 +499,8 @@ onLogout(): <span class="k">void</span> {
 <h2>11. Features — visão geral e padrão comum</h2>
 <p>Cada feature segue a mesma anatomia: um <code>service</code> (<code>providedIn:'root'</code>, usa
 <code>inject(HttpClient)</code> e deriva a URL de <code>API_BASE_URL</code>) e componentes de página com signals
-<code>loading</code>/<code>error</code>/dados carregados no <code>ngOnInit</code>.</p>
+<code>loading</code>/<code>error</code>/dados carregados no <code>ngOnInit</code>. Erros passam por
+<code>extractApiError()</code>.</p>
 
 <h4>Serviço típico (crises)</h4>
 <pre><code><span class="k">@Injectable</span>({ providedIn: <span class="s">'root'</span> })
@@ -396,20 +514,34 @@ onLogout(): <span class="k">void</span> {
   createAcao(id,req) { <span class="k">return this</span>.http.post(<span class="s">`.../${id}/acoes`</span>, req, ...); }
 }</code></pre>
 
+<h4>Blocos reutilizáveis em <code>core/components</code></h4>
+<p>Além dos serviços por feature, o núcleo passou a oferecer primitivos compartilhados por várias telas
+(detalhados na seção 14 e 18):</p>
+<ul>
+  <li><b><code>ToastService</code></b> (signals) + <b><code>ToastContainerComponent</code></b> — notificações efêmeras
+  globais, montadas uma vez no <code>App</code>.</li>
+  <li><b><code>ModalComponent</code></b> — overlay + cartão com projeção de conteúdo e input <code>closable</code>.</li>
+  <li><b>Gráficos SVG/CSS</b> — <code>PieChartComponent</code>, <code>LineChartComponent</code>,
+  <code>BarChartComponent</code> (sem biblioteca externa).</li>
+</ul>
+
 <h4>Panorama das features</h4>
 <table>
-<tr><th>Feature</th><th>Páginas</th><th>Endpoints consumidos</th></tr>
-<tr><td>auth</td><td>login</td><td><code>/auth/login</code></td></tr>
-<tr><td>dashboard</td><td>dashboard</td><td><code>/api/dashboard/resumo</code></td></tr>
+<tr><th>Feature</th><th>Páginas / componentes</th><th>Endpoints consumidos</th></tr>
+<tr><td>auth</td><td>login · forgot-password · reset-password · change-password-modal</td><td><code>/auth/login·logout·me·perfil·change-password·forgot-password·reset-password</code></td></tr>
+<tr><td>dashboard</td><td>dashboard (switch) · admin-dashboard</td><td><code>/api/dashboard/resumo</code> + fontes ADMIN (ver seção 17)</td></tr>
+<tr><td>perfil</td><td>perfil</td><td><code>/auth/perfil</code></td></tr>
+<tr><td>acesso-negado</td><td>acesso-negado</td><td>—</td></tr>
 <tr><td>crises</td><td>list · form · detail</td><td><code>/api/crises</code> (+ status, acoes)</td></tr>
-<tr><td>relatorios</td><td>list · form</td><td><code>/api/relatorios</code></td></tr>
-<tr><td>auditoria</td><td>list (admin)</td><td><code>/api/auditoria</code> (+ facets)</td></tr>
-<tr><td>departamentos · tipos-crise · instituicoes · campi · cenarios</td><td>list</td><td><code>/api/{ref}</code></td></tr>
+<tr><td>relatorios</td><td>list · form <span class="badge b-admin">ADMIN</span></td><td><code>/api/relatorios</code></td></tr>
+<tr><td>usuarios</td><td>list · form <span class="badge b-admin">ADMIN</span></td><td><code>/api/usuarios</code></td></tr>
+<tr><td>auditoria</td><td>list <span class="badge b-admin">ADMIN</span></td><td><code>/api/auditoria</code> (+ facets)</td></tr>
+<tr><td>departamentos · tipos-crise · instituicoes · campi · cenarios</td><td>list · form <span class="badge b-admin">ADMIN</span></td><td><code>/api/{ref}</code></td></tr>
 </table>
-<div class="callout"><b>Observação de estado atual:</b> os serviços dos 5 cadastros de referência já expõem CRUD
-completo (<code>create</code>/<code>update</code>/<code>deactivate</code>), mas os componentes de lista atualmente só
-chamam <code>listAll()</code> — funcionam como listagens somente-leitura. Apenas <b>crises</b> e <b>relatórios</b>
-têm telas de formulário.</div>
+<div class="callout"><b>Estado atual:</b> os cadastros de referência e o novo módulo <b>usuarios</b> ganharam telas de
+formulário (rotas <code>/novo</code> e <code>/:id/editar</code>) e agora estão inteiramente sob
+<code>adminGuard</code>. As telas de <b>crises</b> continuam acessíveis a todos os autenticados (com regras por
+perfil dentro delas — ver seção 18).</div>
 </section>
 
 <!-- 12 -->
@@ -440,6 +572,9 @@ têm telas de formulário.</div>
     });
   }
 }</code></pre>
+<div class="note">Criar crise é permitido a <b>todos os autenticados</b> (inclusive COMUM). No backend, a crise passa
+a ter <b>dono</b> (<code>created_by</code>, extraído do JWT); o COMUM só enxerga/acessa as próprias, enquanto o ADMIN
+vê todas (ver seções 17 e 18).</div>
 
 <h3>12.2 Detalhe da crise — máquina de estados no cliente</h3>
 <p>A tela de detalhe implementa o ciclo de vida da crise usando um mapa <code>fluxo</code> e dois
@@ -455,63 +590,321 @@ têm telas de formulário.</div>
 <span class="k">readonly</span> formVisivel = computed(() =&gt; {         <span class="c">// só registra ação se aberta/andamento</span>
   <span class="k">const</span> s = <span class="k">this</span>.crise()?.status;
   <span class="k">return</span> s === <span class="s">'ABERTA'</span> || s === <span class="s">'EM_ANDAMENTO'</span>;
-});
-
-avancarStatus() {
-  <span class="k">const</span> proximo = <span class="k">this</span>.proximoStatus();
-  <span class="k">if</span> (!proximo) <span class="k">return</span>;
-  <span class="k">this</span>.criseService.changeStatus(<span class="k">this</span>.criseId, proximo)
-    .subscribe({ next: (d) =&gt; <span class="k">this</span>.crise.set(d), ... });
-}
-registrarAcao() {
-  <span class="k">this</span>.criseService.createAcao(<span class="k">this</span>.criseId, <span class="k">this</span>.novaAcao)
-    .subscribe({ next: () =&gt; { <span class="k">this</span>.novaAcao = {descricao:<span class="s">''</span>,tipo:<span class="s">'CONTENCAO'</span>}; <span class="k">this</span>.carregarAcoes(); }, ... });
-}</code></pre>
-<div class="note">Essa máquina de estados é o <em>espelho</em> da regra do backend (crise ENCERRADA é terminal). O
-front esconde o botão de avançar/registrar; o back a garante de fato — defesa em profundidade.</div>
+});</code></pre>
+<p>No template, tanto o bloco de avançar status quanto o formulário de nova ação ficam sob
+<code>*appRole="['ADMIN']"</code> — ou seja, o COMUM vê o detalhe e a timeline, mas <b>somente leitura</b>. Registrar
+ação (<code>POST /api/crises/{id}/acoes</code>) e mudar status são exclusivos do ADMIN.</p>
+<div class="note">Essa máquina de estados é o <em>espelho</em> da regra do backend (crise ENCERRADA é terminal); o
+front esconde os controles e o back garante de fato — defesa em profundidade. O sucesso das ações usa o
+<code>ToastService</code>.</div>
 </section>
 
 <!-- 13 -->
 <section>
-<h2>13. Dashboard, Relatórios e Auditoria</h2>
+<h2>13. Dashboard por perfil, Relatórios e Auditoria</h2>
 
-<h4>Dashboard</h4>
-<p>Página única (landing pós-login e destino do <code>adminGuard</code> para não-admins). Consome
-<code>GET /api/dashboard/resumo</code> e exibe KPIs (<code>totalCrises</code>, <code>crisesAbertas</code>,
-<code>crisesEmAndamento</code>, <code>crisesResolvidas</code>, <code>crisesCriticas</code>) que linkam para as crises.</p>
+<h4>Dashboard — um switch por perfil</h4>
+<p>O <code>DashboardComponent</code> deixou de ser uma página única e virou um <strong>switch por perfil</strong>:</p>
+<pre><code><span class="k">readonly</span> isAdmin = computed(() =&gt; <span class="k">this</span>.user()?.perfil === <span class="s">'ADMIN'</span>);
 
-<h4>Relatórios</h4>
-<p>No formulário, o select de crises é <strong>filtrado</strong> para exibir apenas crises
-<code>RESOLVIDA</code>/<code>ENCERRADA</code> (<code>crisesElegiveis</code>), espelhando a regra do backend de que só
-crises fechadas geram relatório.</p>
+<span class="c">// template</span>
+<span class="k">@if</span> (isAdmin()) {
+  &lt;app-admin-dashboard /&gt;                          <span class="c">// Centro de Monitoramento (seção 17)</span>
+} <span class="k">@else</span> {
+  <span class="c">// home enxuta do COMUM: boas-vindas + KPIs das próprias crises + últimas crises</span>
+}</code></pre>
+<p>Para o <b>COMUM</b>, o componente carrega <code>criseService.listAll()</code> (que o backend já filtra pelas crises
+do próprio usuário) e computa uma home enxuta: cartão de boas-vindas, KPIs simples
+(<code>totalCrises</code>, <code>emAberto</code> = ABERTA+EM_ANDAMENTO, <code>encerradas</code> = RESOLVIDA+ENCERRADA)
+e as <code>ultimasCrises</code> (5 primeiras). Para o <b>ADMIN</b>, o componente não busca nada — delega tudo ao
+<code>AdminDashboardComponent</code>, que carrega seus próprios dados (seção 17).</p>
 
-<h4>Auditoria (só ADMIN)</h4>
+<h4>Relatórios <span class="badge b-admin">só ADMIN</span></h4>
+<p>Toda a área de relatórios agora exige <code>adminGuard</code> (o COMUM não a acessa nem vê o link). No formulário,
+o select de crises continua <strong>filtrado</strong> para exibir apenas crises <code>RESOLVIDA</code>/<code>ENCERRADA</code>
+(<code>crisesElegiveis</code>), espelhando a regra do backend de que só crises fechadas geram relatório.</p>
+
+<h4>Auditoria <span class="badge b-admin">só ADMIN</span></h4>
 <p>Lista com filtros por entidade, ação e usuário — os valores dos dropdowns vêm de
 <code>GET /api/auditoria/facets</code>. Usa <code>DatePipe</code> para a data/hora e helpers que colorem badges por
-ação (CRIAR→verde, ATUALIZAR→azul, EXCLUIR→vermelho) e por faixa de status HTTP.</p>
+ação (CRIAR→verde, ATUALIZAR→azul, EXCLUIR→vermelho) e por faixa de status HTTP. Além da própria tela, os registros
+de auditoria alimentam o painel "Últimas atividades" do Centro de Monitoramento.</p>
 </section>
 
 <!-- 14 -->
 <section class="pb">
-<h2>14. Fluxos de ponta a ponta</h2>
+<h2>14. Primitivos de UX (Toast, Modal, Skeleton)</h2>
+<p>Para padronizar feedback e evitar dependências externas, o núcleo ganhou um pequeno conjunto de primitivos
+reutilizáveis em <code>core/components</code> e <code>core/services</code>, apoiados por estilos globais em
+<code>styles.scss</code> (<code>.toast-*</code>, <code>.modal-*</code>, <code>.skeleton</code>,
+<code>.field-error</code>).</p>
+
+<h4>Toasts — <code>ToastService</code> (signals) + <code>ToastContainerComponent</code></h4>
+<p>O serviço mantém a fila em um signal e oferece <code>success()</code>, <code>error()</code> e <code>info()</code>,
+cada um com auto-dismiss por <code>setTimeout</code> (4&nbsp;s / 6&nbsp;s). O container é montado uma única vez no
+<code>App</code> e renderiza a pilha no canto superior direito.</p>
+<pre><code><span class="k">@Injectable</span>({ providedIn: <span class="s">'root'</span> })
+<span class="k">export class</span> ToastService {
+  <span class="k">private</span> sequence = <span class="a">0</span>;
+  <span class="k">readonly</span> toasts = signal&lt;Toast[]&gt;([]);            <span class="c">// { id, type, message }</span>
+  success(m, t = <span class="a">4000</span>) { <span class="k">this</span>.push(<span class="s">'success'</span>, m, t); }
+  error(m, t = <span class="a">6000</span>)   { <span class="k">this</span>.push(<span class="s">'error'</span>, m, t); }
+  info(m, t = <span class="a">4000</span>)    { <span class="k">this</span>.push(<span class="s">'info'</span>, m, t); }
+  dismiss(id)          { <span class="k">this</span>.toasts.update((l) =&gt; l.filter((x) =&gt; x.id !== id)); }
+  <span class="k">private</span> push(type, message, ms) {
+    <span class="k">const</span> id = ++<span class="k">this</span>.sequence;
+    <span class="k">this</span>.toasts.update((l) =&gt; [...l, { id, type, message }]);
+    <span class="k">if</span> (ms &gt; <span class="a">0</span>) setTimeout(() =&gt; <span class="k">this</span>.dismiss(id), ms);
+  }
+}</code></pre>
+
+<h4>Modal genérico — <code>ModalComponent</code></h4>
+<p>Overlay + cartão centralizado com projeção de conteúdo (<code>&lt;ng-content&gt;</code>). Inputs: <code>title</code>
+e <code>closable</code> (padrão <code>true</code>). Emite <code>(close)</code> ao clicar no botão de fechar ou no
+backdrop — mas <b>quando <code>closable=false</code> ignora o backdrop e esconde o botão</b>, viabilizando o fluxo
+obrigatório de primeiro acesso.</p>
+<pre><code>&lt;div class="modal-overlay" (click)="onBackdrop()"&gt;
+  &lt;div class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()"&gt;
+    &lt;header class="modal-card__head"&gt;
+      &lt;h2&gt;{{ title() }}&lt;/h2&gt;
+      <span class="k">@if</span> (closable()) { &lt;button (click)="close.emit()"&gt;✕&lt;/button&gt; }
+    &lt;/header&gt;
+    &lt;div class="modal-card__body"&gt;&lt;ng-content /&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+<span class="c">// onBackdrop(): só emite (close) se closable()</span></code></pre>
+
+<h4>Skeleton e estilos de campo</h4>
+<p>Não é um componente, e sim uma classe utilitária global (<code>.skeleton</code>) usada para placeholders animados
+durante o carregamento, junto de <code>.field-error</code>/<code>.field-hint</code> para mensagens de formulário.</p>
+</section>
+
+<!-- 15 -->
+<section>
+<h2>15. Primeiro acesso (modal bloqueante) e recuperação de senha</h2>
+
+<h4>Primeiro acesso — modal obrigatório</h4>
+<p>Quando o backend marca <code>mustChangePassword</code>, o usuário faz login normalmente e cai no
+<code>/dashboard</code>; o layout então monta <code>&lt;app-change-password-modal [mandatory]="true"&gt;</code>. Em modo
+obrigatório, o modal <b>não é fechável</b> (sem botão de cancelar, backdrop inerte) e exibe uma mensagem explicativa
+de primeiro acesso.</p>
+<pre><code><span class="k">export class</span> ChangePasswordModalComponent {
+  <span class="k">readonly</span> mandatory = input(<span class="k">false</span>);
+  <span class="k">readonly</span> changed = output&lt;<span class="k">void</span>&gt;();   <span class="k">readonly</span> closed = output&lt;<span class="k">void</span>&gt;();
+  <span class="c">// título muda conforme o modo</span>
+  <span class="k">readonly</span> title = computed(() =&gt; <span class="k">this</span>.mandatory() ? <span class="s">'Definição de senha obrigatória'</span> : <span class="s">'Alterar senha'</span>);
+
+  onSubmit() {
+    <span class="k">if</span> (!<span class="k">this</span>.currentPassword()) { <span class="k">this</span>.errorMessage.set(<span class="s">'Informe a senha atual.'</span>); <span class="k">return</span>; }
+    <span class="k">const</span> policyError = validatePasswordPolicy(<span class="k">this</span>.newPassword());   <span class="c">// mín. 8 + letra + número</span>
+    <span class="k">if</span> (policyError) { <span class="k">this</span>.errorMessage.set(policyError); <span class="k">return</span>; }
+    <span class="k">if</span> (<span class="k">this</span>.newPassword() !== <span class="k">this</span>.confirmPassword()) { <span class="k">this</span>.errorMessage.set(<span class="s">'A confirmação não corresponde…'</span>); <span class="k">return</span>; }
+    <span class="k">this</span>.authService.changePassword({ currentPassword, newPassword }).subscribe({
+      next: () =&gt; { <span class="k">this</span>.toast.success(<span class="s">'Senha alterada com sucesso.'</span>); <span class="k">this</span>.changed.emit(); },
+      error: (err) =&gt; <span class="k">this</span>.errorMessage.set(extractApiError(err, <span class="s">'…Verifique a senha atual.'</span>)),
+    });
+  }
+}</code></pre>
+<p>Como <code>changePassword()</code> zera <code>mustChangePassword</code> no signal, o <code>@if</code> do layout deixa
+de renderizar o modal automaticamente; em seguida <code>(changed)</code> dispara
+<code>onFirstAccessChanged()</code>, que navega para <code>/dashboard</code>. O mesmo componente, com
+<code>mandatory=false</code>, é reaproveitado em "Meu Perfil" (seção 16) com botão de cancelar.</p>
+
+<h4>Recuperação de senha — páginas públicas</h4>
+<p>Duas telas públicas (fora do layout autenticado) cobrem o fluxo de esquecimento:</p>
+<ul>
+  <li><b><code>/esqueci-senha</code></b> (<code>ForgotPasswordComponent</code>): coleta o e-mail e chama
+  <code>forgotPassword(email)</code>. A resposta é sempre <b>neutra</b> — não revela se a conta existe: sucesso e
+  falhas de servidor mostram a mesma tela de confirmação; apenas erro <code>400</code> (e-mail malformado) volta ao
+  formulário com mensagem.</li>
+  <li><b><code>/redefinir-senha</code></b> (<code>ResetPasswordComponent</code>): lê <code>?token=</code> da query
+  string no <code>ngOnInit</code> (sinaliza <code>tokenMissing</code> se ausente), valida a nova senha pela mesma
+  política e chama <code>resetPassword({ token, newPassword })</code>. No sucesso, exibe confirmação e um toast, com
+  link para voltar ao login; se o link expirou, mostra o erro via <code>extractApiError</code>.</li>
+</ul>
+<div class="note">No backend, o token é um hash SHA-256 guardado com validade de 30 min e o link chega por e-mail — do
+lado do front, tudo o que importa é ler o <code>token</code> da URL e respeitar a política de senha.</div>
+</section>
+
+<!-- 16 -->
+<section class="pb">
+<h2>16. Meu Perfil</h2>
+<p>A rota <code>/perfil</code> (<code>PerfilComponent</code>) exibe os dados cadastrais do usuário em modo
+<b>somente leitura</b>. No <code>ngOnInit</code> chama <code>authService.getProfile()</code>
+(<code>GET /auth/perfil</code>) e mostra: <b>Nome</b>, <b>E-mail</b>, <b>Cargo</b>, <b>Departamento</b>
+(<code>departamentoNome</code>), <b>Instituição</b> (<code>instituicaoNome</code>) e <b>Perfil</b> (rotulado como
+"Administrador" ou "Usuário").</p>
+<pre><code>ngOnInit() {
+  <span class="k">this</span>.authService.getProfile().subscribe({
+    next: (profile) =&gt; { <span class="k">this</span>.profile.set(profile); <span class="k">this</span>.loading.set(<span class="k">false</span>); },
+    error: (err) =&gt; { <span class="k">this</span>.error.set(extractApiError(err, <span class="s">'Não foi possível carregar o perfil.'</span>)); ... },
+  });
+}
+<span class="c">// botão "Alterar senha" abre o mesmo modal, agora não obrigatório</span>
+openPasswordModal()  { <span class="k">this</span>.showPasswordModal.set(<span class="k">true</span>); }
+closePasswordModal() { <span class="k">this</span>.showPasswordModal.set(<span class="k">false</span>); }</code></pre>
+<p>O botão <b>"Alterar senha"</b> monta o <code>ChangePasswordModalComponent</code> com
+<code>mandatory=false</code> — assim ele é fechável (botão Cancelar + backdrop) e reaproveita toda a validação de
+política e o feedback via toast.</p>
+</section>
+
+<!-- 17 -->
+<section>
+<h2>17. Centro de Monitoramento (admin) — <code>AdminDashboardComponent</code></h2>
+<p>Para o ADMIN, o dashboard é um <strong>centro de monitoramento</strong> que agrega o estado do sistema em uma única
+tela densa. Toda a informação é <b>computada no cliente</b> a partir de <b>endpoints ADMIN já existentes</b> —
+nenhuma API nova foi criada.</p>
+
+<h4>Carga resiliente em paralelo (<code>forkJoin</code>)</h4>
+<p>No <code>ngOnInit</code>, nove fontes são buscadas em paralelo; cada uma tem seu próprio
+<code>catchError</code> (para <code>of([])</code> ou <code>of(null)</code>), de modo que a falha de uma fonte não
+derruba o painel inteiro.</p>
+<pre><code>forkJoin({
+  resumo:        <span class="k">this</span>.dashboardService.resumo().pipe(catchError(() =&gt; of(<span class="k">null</span>))),
+  crises:        <span class="k">this</span>.criseService.listAll().pipe(catchError(() =&gt; of([]))),
+  usuarios:      <span class="k">this</span>.usuarioService.listAll().pipe(catchError(() =&gt; of([]))),
+  tipos:         <span class="k">this</span>.tipoCriseService.listAll().pipe(catchError(() =&gt; of([]))),
+  departamentos: <span class="k">this</span>.departamentoService.listAll().pipe(catchError(() =&gt; of([]))),
+  campi:         <span class="k">this</span>.campusService.listAll().pipe(catchError(() =&gt; of([]))),
+  instituicoes:  <span class="k">this</span>.instituicaoService.listAll().pipe(catchError(() =&gt; of([]))),
+  relatorios:    <span class="k">this</span>.relatorioService.listAll().pipe(catchError(() =&gt; of([]))),
+  auditoria:     <span class="k">this</span>.auditoriaService.listAll().pipe(catchError(() =&gt; of([]))),
+}).subscribe({ next: (r) =&gt; { ...seta os signals...; <span class="k">this</span>.atividades.set(r.auditoria.slice(<span class="a">0</span>, <span class="a">7</span>)); }, ... });</code></pre>
+
+<h4>KPIs e métricas derivadas</h4>
+<p>Cada indicador é um <code>computed</code> sobre os signals carregados:</p>
+<table>
+<tr><th>Métrica</th><th>Como é derivada no cliente</th></tr>
+<tr><td>Total</td><td><code>crises().length</code></td></tr>
+<tr><td>Em andamento / Abertas</td><td>filtros por <code>status</code> (abertas = ABERTA + EM_ANDAMENTO)</td></tr>
+<tr><td>Críticas ativas</td><td><code>nivel==='CRITICO'</code> e ainda não resolvida/encerrada</td></tr>
+<tr><td>Resolvidas</td><td>status RESOLVIDA + ENCERRADA</td></tr>
+<tr><td><b>Taxa de resolução</b></td><td><code>round(resolvidas / total × 100)</code></td></tr>
+<tr><td><b>Tempo médio</b></td><td>média de (<code>relatorio.createdAt − crise.createdAt</code>) das crises com relatório; "—" se nenhuma. Rótulo em horas (&lt;1 dia) ou dias.</td></tr>
+<tr><td>Tendência do total</td><td>novas crises deste mês vs. mês anterior (up/down/flat)</td></tr>
+</table>
+
+<h4>Painel de alertas</h4>
+<ul>
+  <li><b>Relatórios pendentes</b>: crises resolvidas/encerradas <em>sem</em> relatório (<code>relatorioPorCrise</code>
+  não contém a crise).</li>
+  <li><b>Sem responsável</b>: crises com <code>createdBy === null</code> (legado pré-dono).</li>
+  <li><b>Usuários inativos</b> (<code>!u.active</code>) e <b>pendências</b> (crises ABERTA).</li>
+</ul>
+
+<h4>Gráficos, atividades, ações rápidas e tabela</h4>
+<ul>
+  <li><b>Gráficos SVG/CSS próprios</b> (seção 18): evolução mensal (linha, 6 meses), por categoria/tipo (pizza), por
+  status (rosca) e por departamento (barras horizontais). A paleta é fixa (<code>PALETTE</code>) e cores de status
+  padronizadas.</li>
+  <li><b>Últimas atividades</b>: os 7 registros mais recentes de <code>/api/auditoria</code>, com ícone por ação
+  (CRIAR→plus, ATUALIZAR→edit, EXCLUIR→trash).</li>
+  <li><b>Ações rápidas</b>: atalhos (ex.: nova crise, cadastros) e <b>tabela de últimas crises</b> com busca, filtro
+  por status/nível, ordenação (recentes/antigas/nível/título) e paginação (<code>pageSize = 6</code>), tudo em
+  <code>computed</code> encadeados (<code>filtered → totalPages → safePage → paged</code>).</li>
+</ul>
+<div class="note"><b>Layout denso:</b> a página usa um grid mestre de <b>12 colunas</b> (<code>.dash-grid</code>,
+<code>.col-4/6/8/12</code>) com <code>max-width: 1600px</code>; os KPIs são cartões compactos horizontais. A antiga
+<b>"faixa de situação" (Estado Geral) foi removida a pedido do usuário</b> — suas métricas seguem vivas nos KPIs e no
+painel de alertas.</div>
+</section>
+
+<!-- 18 -->
+<section class="pb">
+<h2>18. Gráficos em SVG/CSS sem biblioteca</h2>
+<p>Todos os gráficos são <strong>componentes próprios</strong> em <code>core/components/charts</code>, desenhados com
+SVG e CSS — <b>sem Chart.js, D3 ou similar</b>. Compartilham os tipos de <code>chart.types.ts</code>
+(<code>ChartSlice</code>, <code>ChartPoint</code>, <code>ChartBar</code>) e recebem dados via <code>input()</code>,
+recomputando a geometria em <code>computed</code>. Os estilos são globais e namespaced (<code>.chart-*</code> em
+<code>styles.scss</code>), já que esses componentes não têm SCSS próprio.</p>
+<table>
+<tr><th>Componente</th><th>Tipo</th><th>Como funciona</th></tr>
+<tr><td><code>PieChartComponent</code></td><td>Pizza / rosca</td><td>Desenha fatias como <code>&lt;path&gt;</code> (arco polar). Input <code>size</code> dimensiona o SVG; <code>innerRadius</code> (0–1) &gt; 0 vira rosca com furo central e valor/rótulo centrais. Inclui legenda com valor e %.</td></tr>
+<tr><td><code>LineChartComponent</code></td><td>Linha + área</td><td><code>viewBox 900×200</code> (responsivo), grade horizontal em 3 níveis, área com gradiente (id único por instância) e pontos rotulados no eixo X.</td></tr>
+<tr><td><code>BarChartComponent</code></td><td>Barras horizontais</td><td>CSS puro (<code>&lt;ul&gt;</code> + larguras em %); normaliza cada barra pelo maior valor. Ideal para ranking por categoria/departamento.</td></tr>
+</table>
+<pre><code><span class="c">// pie-chart: pizza (innerRadius=0) ou rosca (0&lt;innerRadius&lt;1)</span>
+&lt;app-pie-chart [slices]="porStatus()" [innerRadius]="0.6" [size]="132"
+               centerValue="…" centerLabel="…" /&gt;
+<span class="c">// line-chart e bar-chart</span>
+&lt;app-line-chart [points]="evolucaoMensal()" color="#2f9e41" /&gt;
+&lt;app-bar-chart  [bars]="porDepartamento()" /&gt;</code></pre>
+<p>Estado vazio é tratado dentro de cada componente ("Sem dados para exibir." / legenda "Sem dados no período."), e
+todos expõem <code>aria-label</code> descritivo para acessibilidade.</p>
+</section>
+
+<!-- 19 -->
+<section>
+<h2>19. Acesso Negado e endurecimento do perfil COMUM</h2>
+
+<h4>Página <code>/acesso-negado</code></h4>
+<p>Componente enxuto (template e estilos inline) exibido quando o <code>adminGuard</code> barra um usuário
+autenticado sem permissão. Mostra um ícone, a mensagem "Esta seção é restrita a administradores." e um link
+"Voltar ao início" para <code>/dashboard</code>.</p>
+
+<h4>Endurecimento do COMUM</h4>
+<p>O perfil COMUM foi restringido em três frentes, sempre com defesa em profundidade (front cosmético + backend
+autoritativo):</p>
+<ul>
+  <li><b>Detalhe da crise = somente leitura</b>: o formulário de nova ação e o botão de avançar status ficam sob
+  <code>*appRole="['ADMIN']"</code>. O backend tornou <code>POST /api/crises/{id}/acoes</code>
+  <code>@RolesAllowed("ADMIN")</code>; o COMUM ainda lê a timeline (<code>GET …/acoes</code> segue
+  <code>@Authenticated</code>).</li>
+  <li><b>Sem Relatórios</b>: o link some da sidebar (<code>*appRole</code>) e a rota <code>/relatorios</code> exige
+  <code>adminGuard</code>; no backend o controller inteiro é <code>@RolesAllowed("ADMIN")</code>.</li>
+  <li><b>Só as próprias crises</b>: crises têm dono (<code>created_by</code>). O <code>CriseService</code> do backend
+  filtra a listagem por dono para o COMUM e bloqueia o acesso ao detalhe de crise alheia com
+  <code>ForbiddenException</code>; o ADMIN vê todas.</li>
+</ul>
+</section>
+
+<!-- 20 -->
+<section class="pb">
+<h2>20. Fluxos de ponta a ponta</h2>
 
 <h3>Autenticação e proteção de rota</h3>
 <div class="tree"><span class="stepnum">1</span> Usuário envia login  →  AuthService.login()  →  POST /auth/login
-<span class="stepnum">2</span> Backend responde com Set-Cookie: jwt (HttpOnly)  →  navega para /dashboard
+<span class="stepnum">2</span> Backend responde com Set-Cookie: jwt (HttpOnly)  →  navega SEMPRE para /dashboard
 <span class="stepnum">3</span> A cada navegação guardada:
      authGuard  →  fetchCurrentUser()  →  GET /auth/me  (cookie enviado pelo interceptor)
      ├─ sucesso  →  popula currentUser + libera
      └─ erro     →  redireciona a /login
-<span class="stepnum">4</span> adminGuard (só /auditoria): exige perfil === 'ADMIN', senão volta a /dashboard
+<span class="stepnum">4</span> adminGuard (áreas ADMIN): exige perfil === 'ADMIN', senão vai a /acesso-negado
 <span class="stepnum">5</span> UI reativa: *appRole e o layout leem o signal currentUser
 <span class="stepnum">6</span> Logout  →  POST /auth/logout  →  currentUser.set(null)  →  /login</div>
 
-<h3>Operação sobre uma crise</h3>
+<h3>Primeiro acesso (modal bloqueante)</h3>
+<div class="tree"><span class="stepnum">1</span> Login de usuário com mustChangePassword=true  →  vai para /dashboard normalmente
+<span class="stepnum">2</span> Layout detecta user().mustChangePassword  →  monta &lt;app-change-password-modal [mandatory]="true"&gt;
+     (não fechável: sem Cancelar, backdrop inerte)
+<span class="stepnum">3</span> Usuário define nova senha (política: 8+ com letra e número)  →  changePassword()
+     →  POST /auth/change-password
+<span class="stepnum">4</span> Sucesso  →  toast + currentUser recebe mustChangePassword=false  →  @if some com o modal
+<span class="stepnum">5</span> (changed) dispara onFirstAccessChanged()  →  navega para /dashboard já liberado</div>
+
+<h3>Recuperação de senha (esqueci → e-mail → redefinir → login)</h3>
+<div class="tree"><span class="stepnum">1</span> /esqueci-senha: informa e-mail  →  forgotPassword(email)  →  POST /auth/forgot-password
+     (resposta NEUTRA — não revela se a conta existe; só 400 volta ao form)
+<span class="stepnum">2</span> Backend gera token (SHA-256, validade 30 min) e envia link por e-mail
+<span class="stepnum">3</span> Usuário abre o link  →  /redefinir-senha?token=...  (ngOnInit lê o ?token=)
+<span class="stepnum">4</span> Define nova senha (mesma política)  →  resetPassword({ token, newPassword })
+     →  POST /auth/reset-password
+<span class="stepnum">5</span> Sucesso  →  toast + tela de confirmação com link  →  /login</div>
+
+<h3>COMUM só enxerga as próprias crises</h3>
+<div class="tree"><span class="stepnum">1</span> COMUM autentica  →  /dashboard mostra a home enxuta (KPIs das próprias crises)
+<span class="stepnum">2</span> /crises  →  criseService.listAll()  →  backend filtra por created_by do JWT
+<span class="stepnum">3</span> Abre /crises/:id própria  →  detalhe + timeline em SOMENTE LEITURA
+     (form de ação e avançar status escondidos por *appRole="['ADMIN']")
+<span class="stepnum">4</span> Tenta crise alheia ou /relatorios  →  backend 403 / adminGuard  →  /acesso-negado
+<span class="stepnum">5</span> Pode criar crise (POST /api/crises grava created_by) — passa a ser dona dela</div>
+
+<h3>Operação sobre uma crise (ADMIN)</h3>
 <div class="tree"><span class="stepnum">1</span> ADMIN em /crises/nova preenche o form (4 selects carregados em paralelo)
     →  CriseService.create()  →  POST /api/crises  →  volta a /crises
-<span class="stepnum">2</span> Qualquer autenticado abre /crises/:id (detalhe + ações)
-<span class="stepnum">3</span> Registrar ação (form visível só se ABERTA/EM_ANDAMENTO)
-    →  createAcao()  →  POST /api/crises/{id}/acoes
+<span class="stepnum">2</span> Abre /crises/:id (detalhe + ações)
+<span class="stepnum">3</span> Registrar ação (form visível só se ABERTA/EM_ANDAMENTO e só ADMIN)
+    →  createAcao()  →  POST /api/crises/{id}/acoes  →  toast de sucesso
 <span class="stepnum">4</span> ADMIN avança status (computed proximoStatus)
     →  changeStatus()  →  PATCH /api/crises/{id}/status
 <span class="stepnum">5</span> Após RESOLVIDA/ENCERRADA: /relatorios/novo lista só crises elegíveis</div>

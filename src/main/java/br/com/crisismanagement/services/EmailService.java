@@ -51,4 +51,32 @@ public class EmailService {
             throw e;
         }
     }
+
+    /**
+     * Envia o link de recuperação de senha. O token viaja apenas na URL; o
+     * backend guarda somente o hash. O link expira em poucos minutos.
+     */
+    public void enviarLinkRecuperacao(String nome, String email, String token, long minutosValidade) {
+        String link = "%s/redefinir-senha?token=%s".formatted(frontendUrl, token);
+        String assunto = "SGCI - Recuperação de senha";
+        String corpo = """
+                Olá, %s!
+
+                Recebemos uma solicitação para redefinir a senha da sua conta no SGCI.
+
+                Para criar uma nova senha, acesse o link abaixo (válido por %d minutos):
+                %s
+
+                Se você não solicitou a redefinição, ignore este e-mail — sua senha
+                permanecerá inalterada.
+                """.formatted(nome, minutosValidade, link);
+
+        try {
+            mailer.send(Mail.withText(email, assunto, corpo));
+            LOG.infof("E-mail de recuperação de senha enviado para %s", email);
+        } catch (RuntimeException e) {
+            LOG.errorf(e, "Falha ao enviar e-mail de recuperação de senha para %s", email);
+            throw e;
+        }
+    }
 }

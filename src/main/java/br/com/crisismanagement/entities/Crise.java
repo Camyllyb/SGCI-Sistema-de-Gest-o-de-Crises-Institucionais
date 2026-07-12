@@ -50,6 +50,10 @@ public class Crise extends PanacheEntityBase {
     @Column(name = "departamento_id", nullable = false)
     public Long departamentoId;
 
+    /** Usuario que cadastrou a crise (nulo para crises anteriores a V10). */
+    @Column(name = "created_by")
+    public Long createdBy;
+
     @Column(name = "active", nullable = false)
     public boolean active;
 
