@@ -21,12 +21,12 @@ public record CriseResponse(
         boolean active,
         LocalDateTime createdAt) {
 
-    /** Projecao sem o nome do responsavel resolvido (usado quando ele nao e necessario). */
+    /** Projecao sem o nome do responsavel resolvido (usado quando ele não e necessario). */
     public static CriseResponse from(Crise crise) {
         return from(crise, null);
     }
 
-    /** Projecao com o nome do responsavel (criador) ja resolvido. */
+    /** Projecao com o nome do responsavel (criador) já resolvido. */
     public static CriseResponse from(Crise crise, String createdByName) {
         return new CriseResponse(
                 crise.id,
