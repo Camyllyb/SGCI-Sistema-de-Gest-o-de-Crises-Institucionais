@@ -212,8 +212,6 @@ A documentação técnica detalhada (com diagramas, fluxos e trechos de código 
 | Documento | Conteúdo |
 |---|---|
 | [`SGCI-documentacao`](docs/SGCI-documentacao.html) | Visão geral do sistema + **diagrama de fluxo** |
-| [`SGCI-backend-detalhado`](docs/SGCI-backend-detalhado.html) | Backend Quarkus em profundidade (camadas, segurança, migrações) |
-| [`SGCI-frontend-detalhado`](docs/SGCI-frontend-detalhado.html) | Frontend Angular em profundidade (arquitetura, rotas, features) |
 
 *(Cada documento também está disponível em `.pdf`.)*
 
